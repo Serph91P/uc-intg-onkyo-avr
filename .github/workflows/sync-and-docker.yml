@@ -58,15 +58,15 @@ jobs:
       - name: Merge upstream changes
         if: steps.check.outputs.has_new_commits == 'true'
         run: |
-          FORK_HEAD=$(git rev-parse HEAD)
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git merge upstream/main --no-edit
-          # Restore fork's .github/ directory so upstream workflow changes are never pushed.
-          # GITHUB_TOKEN cannot push commits that modify workflow files; preserving our own
-          # .github/ avoids that restriction and keeps fork-specific workflows intact.
-          git checkout "$FORK_HEAD" -- .github/
-          git diff --cached --quiet || git commit -m "chore: restore fork .github after upstream sync"
+          # Use --no-commit so we can restore .github/ before the merge commit is created.
+          # This prevents workflow file changes from ever appearing in a pushed commit,
+          # which would require 'workflows' permission that GITHUB_TOKEN does not have.
+          git merge upstream/main --no-commit --no-ff -X theirs
+          git checkout HEAD -- .github/
+          git add .github/
+          git commit --allow-empty --no-edit
           git push origin main
 
       - name: Push new upstream tags to fork
