@@ -147,21 +147,7 @@ jobs:
             RELEASE_BODY=$(echo "$UPSTREAM_RELEASE" | jq -r '.body // ""')
             IS_PRERELEASE=$(echo "$UPSTREAM_RELEASE" | jq -r '.prerelease')
 
-            DOCKER_SECTION="
-
-## 🐳 Docker Image
-
-Pull this specific version:
-
-\`\`\`bash
-docker pull ghcr.io/${REPO_OWNER}/uc-intg-onkyo-avr:${VERSION}
-\`\`\`
-
-Or pull the latest version:
-
-\`\`\`bash
-docker pull ghcr.io/${REPO_OWNER}/uc-intg-onkyo-avr:latest
-\`\`\`"
+            DOCKER_SECTION=$(printf '\n\n## 🐳 Docker Image\n\nPull this specific version:\n\n```bash\ndocker pull ghcr.io/%s/uc-intg-onkyo-avr:%s\n```\n\nOr pull the latest version:\n\n```bash\ndocker pull ghcr.io/%s/uc-intg-onkyo-avr:latest\n```' "${REPO_OWNER}" "${VERSION}" "${REPO_OWNER}")
 
             FULL_BODY="${RELEASE_BODY}${DOCKER_SECTION}"
 
