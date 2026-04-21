@@ -48,7 +48,7 @@ jobs:
           NEW_TAGS=""
           while IFS= read -r tag; do
             if ! echo "$FORK_TAGS" | grep -qx "$tag"; then
-              NEW_TAGS="$tag $NEW_TAGS"
+              NEW_TAGS="$NEW_TAGS $tag"
             fi
           done < <(git tag -l 'v*' | sort -V)
           NEW_TAGS="${NEW_TAGS% }"
@@ -66,7 +66,7 @@ jobs:
           # GITHUB_TOKEN cannot push commits that modify workflow files; preserving our own
           # .github/ avoids that restriction and keeps fork-specific workflows intact.
           git checkout "$FORK_HEAD" -- .github/
-          git diff --cached --quiet || git commit -m "chore: preserve fork .github after upstream sync"
+          git diff --cached --quiet || git commit -m "chore: restore fork .github after upstream sync"
           git push origin main
 
       - name: Push new upstream tags to fork
@@ -165,14 +165,14 @@ docker pull ghcr.io/${REPO_OWNER}/uc-intg-onkyo-avr:latest
 
             FULL_BODY="${RELEASE_BODY}${DOCKER_SECTION}"
 
-            PRERELEASE_FLAG=""
-            [ "$IS_PRERELEASE" = "true" ] && PRERELEASE_FLAG="--prerelease"
+            PRERELEASE_FLAG=()
+            [ "$IS_PRERELEASE" = "true" ] && PRERELEASE_FLAG=("--prerelease")
 
             gh release create "$tag" \
               --repo "${REPO_OWNER}/${REPO_NAME}" \
               --title "${RELEASE_NAME:-$tag}" \
               --notes "$FULL_BODY" \
-              $PRERELEASE_FLAG \
+              "${PRERELEASE_FLAG[@]}" \
             && echo "Created release $tag" \
             || echo "Release $tag may already exist, skipping"
           done
