@@ -23,7 +23,9 @@ Read this readme completely, it contains some tips for known issues and it also 
 - Your AVR(s) needs to be connected to the same network as you UC Remote (if AVR IP is 192.168.1.x then UC Remote IP must also start with 192.168.1).
 - Your AVR(s) needs to be ON or STANDBY.
 - A wired network connection is preferred but several users report it's working fine while AVR is connected over WiFi.
-- Your AVR is configured to allow/enable control over IP/Network
+- Your AVR is configured to allow/enable control over IP/Network:
+  - Network/Bluetooth > Network Standby: On
+  - Miscellaneous > External Control > Network Control: On
 - Your UC Remote needs to have `New reconnect logic` enabled.
 
   ![](./screenshots/new-reconnect-logic.png)
@@ -49,17 +51,17 @@ Users report it also to work with:
 - Pioneer VSA-LX805
 - Integra (model unknown)
 
-[Architecture and Operation](./docs/architecture.md)
-
 ## Installation and usage
 
 [Installation](./docs/installation.md)
 
 Example activities:
+
 - [Spotify](./docs/spotify.md)
 - [AppleTV](./docs/atv.md)
 - [DAB Radio](./docs/dab.md)
 - [TuneIn Radio](./docs/tunein.md)
+- [Tidal](./docs/tidal.md)
 - Make sure that you add your Activities to an [Activity Group](./docs/activitygroup.md).
 - `Home` \ `Customise your remote` Add your new Activity to a page and now you can give it a try on the awesome Unfolded Circle Remote!
 - or, when not created an activity yet: `Home` \ `Customise your remote` and just add your AVR, in that case physical buttons are mapped.
@@ -74,13 +76,11 @@ Example activities:
 
 [Album art](./docs/album-art.md)
 
-## Cheats
-
-[Cheats](./docs/cheats.md)
-
-## Input source
+## Input source and Cheats
 
 [Input source](./docs/input-selector.md)
+
+[Cheats](./docs/cheats.md)
 
 ## Volume
 
@@ -88,11 +88,9 @@ Example activities:
 
 [Slider](./docs/volume.md#slider)
 
-## Sensors
+## Sensors and Selects
 
 [Sensors](./docs/sensor.md)
-
-## Selects
 
 [Selects](./docs/select.md)
 
@@ -100,11 +98,9 @@ Example activities:
 
 [Listening modes](./docs/listening-modes.md)
 
-## Multiple AVRs
+## Multiple AVRs and Zones
 
 [Multiple AVRs](./docs/multiple-avrs.md)
-
-## Multiple zones
 
 [Multiple zones](./docs/multiple-zones.md)
 
@@ -112,14 +108,16 @@ Example activities:
 
 [Raw messages](./docs/raw.md)
 
-## Backup and Restore
+## Backup, Restore, Logs
 
 [Backup and Restore](./docs/backup-restore.md)
 
-## Collect logs
-
 [Collect logs](./docs/collect-logs.md)
 
-## Known issues and solutions
+## Other
 
 [Known issues and solutions](./docs/known-issues.md)
+
+[Architecture and Operation](./docs/architecture.md)
+
+[Log level](./docs/loglevel.md)

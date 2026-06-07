@@ -1,9 +1,9 @@
 import { EiscpDriver } from "./eiscp.js";
 import log from "./loggers.js";
-import { delay } from "./utils.js";
+import { delay, toHex } from "./utils.js";
 import { getTuneInPresetCount, hasTuneInPresets, setTuneInBrowseContext } from "./mediaBrowser.js";
 
-const integrationName = "zoneAgnosticUpdateProcessor:";
+const integrationName = "tuneInPreloader:";
 
 type PhysicalAvrIdResolver = (entityId: string) => string;
 
@@ -19,7 +19,7 @@ export class TuneInPreloader {
   private nextTuneInListSequence(): string {
     const sequence = this.tuneInListSequence & 0xffff;
     this.tuneInListSequence = (this.tuneInListSequence + 1) & 0xffff;
-    return sequence.toString(16).toUpperCase().padStart(4, "0");
+    return toHex(sequence, 4);
   }
 
   private async requestTuneInPresetXml(): Promise<void> {
@@ -36,8 +36,8 @@ export class TuneInPreloader {
     }
 
     this.tuneInPreloadInFlight.add(physicalAvrId);
-    const menuDelay = this.eiscpInstance["config"]?.netMenuDelay ?? 2500;
-    const myPresetsPosition = String(this.eiscpInstance["config"]?.tuneinPresetPosition ?? 1).padStart(5, "0");
+    const menuDelay = this.eiscpInstance.eiscpConfig?.netMenuDelay ?? 2500;
+    const myPresetsPosition = String(this.eiscpInstance.eiscpConfig?.tuneinPresetPosition ?? 1).padStart(5, "0");
     const scanDelay = Math.max(200, Math.min(menuDelay || 0, 1000));
 
     try {
@@ -52,36 +52,23 @@ export class TuneInPreloader {
       await this.requestTuneInPresetXml();
       await delay(scanDelay);
 
-      let lastCount = getTuneInPresetCount(entityId);
-      let stagnantSteps = 0;
-      const minimumScrollSteps = 12;
-      const maxStagnantSteps = 12;
-
-      for (let step = 0; step < 40 && (step < minimumScrollSteps || stagnantSteps < maxStagnantSteps); step += 1) {
-        await this.eiscpInstance.raw("NTCDOWN");
-        await delay(scanDelay);
-
-        if ((step + 1) % 10 === 0) {
-          await this.requestTuneInPresetXml();
-          await delay(scanDelay);
-        }
-
-        const count = getTuneInPresetCount(entityId);
-        if (count > lastCount) {
-          lastCount = count;
-          stagnantSteps = 0;
-        } else {
-          stagnantSteps += 1;
-        }
-      }
-
+      const lastCount = getTuneInPresetCount(entityId);
       if (lastCount > 0) {
-        log.info("%s [%s] harvested %d TuneIn preset(s) from paged AVR list updates", integrationName, entityId, lastCount);
+        log.info("%s [%s] harvested %d TuneIn preset(s) from NLAL", integrationName, entityId, lastCount);
       }
     } catch (err) {
       log.warn("%s [%s] failed to preload TuneIn My Presets: %s", integrationName, entityId, err);
     } finally {
       this.tuneInPreloadInFlight.delete(physicalAvrId);
     }
+  }
+
+  // Aborts an in-flight preload for this AVR. Returns true if a preload was actually running (and has been flagged to stop), false if nothing was in flight.
+  abortPreload(entityId: string): boolean {
+    const physicalAvrId = this.resolvePhysicalAvrId(entityId);
+    if (this.tuneInPreloadInFlight.has(physicalAvrId)) {
+      return true;
+    }
+    return false;
   }
 }

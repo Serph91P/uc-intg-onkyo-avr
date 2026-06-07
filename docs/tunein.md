@@ -22,7 +22,7 @@ To set up an Activity for TuneIn, have a look at these screenshots:
 
   ![](../screenshots/tunein-on.png)
 
-- Map the volume up/down physical buttons (do *not* map volume long press, **only map volume short press**). 
+- Map the volume up/down physical buttons (do _not_ map volume long press, **only map volume short press**).
 
 - Also map the [Slider](./volume.md#slider) to control the volume
 
@@ -47,13 +47,13 @@ To set up an Activity for TuneIn, have a look at these screenshots:
   ![](/screenshots/net-subsource-delay.png)
 
 ### Media Browser
+
 If your UC Remote is running firmware v2.9.1 or higher, the mediawidget supports media browsing! This integration (v0.8.5+) offers browsing of the 'My Presets' list to easily select a different TuneIn station:
 
-  ![](/screenshots/tunein-browse1.jpg)
+![](/screenshots/tunein-browse1.jpg)
 
-  ![](/screenshots/tunein-browse2.jpg)
+![](/screenshots/tunein-browse2.jpg)
 
+This integration (v0.8.10+) can be configured to browse the TuneIn menu, instead of just showing the My Presets.
 
-_note: after installing a new version of the integration or after a reboot of the remote, it might be needed to close screen on the remote and enter the already active activity again to get the MediaWidget to work_
-
-[back to main README](../README.md#installation-and-usage)
+**When you want to go back in menu options, it's best to use `TuneIn Main Menu` or `Back` at the top of the options, the back button in the Media Browser itself does not yet set the AVR state one step back in menu navigation so you could get into unexpected behavior using the back option of the Media Browser.**

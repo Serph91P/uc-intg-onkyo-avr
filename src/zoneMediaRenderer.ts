@@ -6,26 +6,26 @@ import log from "./loggers.js";
 import { delay } from "./utils.js";
 import { ZoneAgnosticMediaStateStore } from "./zoneAgnosticMediaState.js";
 
-const integrationName = "zoneAgnosticUpdateProcessor:";
+const integrationName = "zoneMediaRenderer:";
 
 export class ZoneMediaRenderer {
   constructor(
     private readonly driver: uc.IntegrationAPI,
-    private readonly config: OnkyoConfig,
+    private config: OnkyoConfig,
     private readonly mediaStateStore: ZoneAgnosticMediaStateStore
   ) {}
 
-  async maybeUpdateImage(entityId: string, force: boolean = false): Promise<void> {
+  public updateConfig(config: OnkyoConfig): void {
+    this.config = config;
+  }
+
+  async maybeUpdateImage(entityId: string): Promise<void> {
     if (!this.config.albumArtURL || this.config.albumArtURL === "na") {
       return;
     }
 
     const sharedState = this.mediaStateStore.getSharedAvrMediaState(entityId);
     const physicalAvrId = this.mediaStateStore.getPhysicalAvrId(entityId);
-
-    if (force) {
-      sharedState.lastImageHash = "";
-    }
 
     const imageUrl = `http://${this.config.ip}/${this.config.albumArtURL}`;
     const previousHash = sharedState.lastImageHash;
@@ -79,7 +79,7 @@ export class ZoneMediaRenderer {
           }
 
           if (forceUpdate || !sharedState.currentImageUrl) {
-            await this.maybeUpdateImage(entityId, forceUpdate);
+            await this.maybeUpdateImage(entityId);
           }
         }
         break;

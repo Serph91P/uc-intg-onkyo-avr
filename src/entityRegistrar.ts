@@ -5,16 +5,15 @@ import { Select, SelectStates } from "@unfoldedcircle/integration-api";
 import { eiscpMappings } from "./eiscp-mappings.js";
 import { getCompatibleListeningModes } from "./listeningModeFilters.js";
 import { ConfigManager, buildEntityId } from "./configManager.js";
-import { browseTuneInMedia } from "./mediaBrowser.js";
+import { browseMedia } from "./mediaBrowser.js";
+import { TidalBrowseHandler } from "./tidalBrowseHandler.js";
+import { TuneInBrowseHandler } from "./tuneInBrowseHandler.js";
 
 export default class EntityRegistrar {
-  constructor() {}
+  private readonly tidalBrowseHandler = new TidalBrowseHandler();
+  private readonly tuneInBrowseHandler = new TuneInBrowseHandler();
 
-  /**
-   * Build a user-facing base name from an AVR entry id.
-   * Input format is typically: "MODEL HOST ZONE".
-   * Long style keeps the full entry, short style omits HOST (IP/hostname).
-   */
+  // Build a user-facing base name from an AVR entry id. Input format is typically: "MODEL HOST ZONE". Long style keeps the full entry, short style omits HOST (IP/hostname).
   private getDisplayBaseName(avrEntry: string): string {
     const cfg = ConfigManager.get();
     const match = cfg?.avrs?.find((a) => buildEntityId(a.model, a.ip, a.zone) === avrEntry);
@@ -42,11 +41,7 @@ export default class EntityRegistrar {
     return `${model} ${zoneLabel}`;
   }
 
-  /**
-   * Return listening mode options. If an AVR-specific `listeningModeOptions`
-   * is configured, return it exactly. Otherwise fall back to dynamic filtering
-   * by audio format (or return all available modes).
-   */
+  // Return listening mode options. If an AVR-specific `listeningModeOptions` is configured, return it exactly. Otherwise fall back to dynamic filtering by audio format (or return all available modes).
   getListeningModeOptions(audioFormat?: string, avrEntry?: string): string[] {
     // If avrEntry provided and config contains user-specified options, return them
     if (avrEntry) {
@@ -58,7 +53,7 @@ export default class EntityRegistrar {
             return match.listeningModeOptions.map((s) => s.trim());
           }
         }
-      } catch (err) {
+      } catch {
         // ignore and fall back to defaults
       }
     }
@@ -76,7 +71,8 @@ export default class EntityRegistrar {
   createMediaPlayerEntity(
     avrEntry: string,
     volumeScale: number,
-    cmdHandler?: (entity: uc.Entity, cmdId: string, params?: { [key: string]: string | number | boolean }) => Promise<uc.StatusCodes>
+    cmdHandler?: (entity: uc.Entity, cmdId: string, params?: { [key: string]: string | number | boolean }) => Promise<uc.StatusCodes>,
+    rawSend?: (cmd: string) => Promise<void>
   ): uc.MediaPlayer {
     const displayBaseName = this.getDisplayBaseName(avrEntry);
     const mediaPlayerEntity = new uc.MediaPlayer(
@@ -121,7 +117,15 @@ export default class EntityRegistrar {
       }
     );
     if (cmdHandler) mediaPlayerEntity.setCmdHandler(cmdHandler);
-    mediaPlayerEntity.browse = async (options: uc.BrowseOptions) => browseTuneInMedia(avrEntry, options);
+    mediaPlayerEntity.browse = async (options: uc.BrowseOptions) => {
+      const tuneInResult = await this.tuneInBrowseHandler.browse(avrEntry, options, mediaPlayerEntity, cmdHandler, rawSend);
+      if (tuneInResult !== undefined) return tuneInResult;
+
+      const tidalResult = await this.tidalBrowseHandler.browse(avrEntry, options, mediaPlayerEntity, cmdHandler, rawSend);
+      if (tidalResult !== undefined) return tidalResult;
+
+      return browseMedia(avrEntry, options);
+    };
     return mediaPlayerEntity;
   }
 
@@ -262,10 +266,7 @@ export default class EntityRegistrar {
     return sensors;
   }
 
-  createListeningModeSelectEntity(
-    avrEntry: string,
-    cmdHandler?: (entity: uc.Entity, cmdId: string, params?: { [key: string]: string | number | boolean }) => Promise<uc.StatusCodes>
-  ): Select {
+  createListeningModeSelectEntity(avrEntry: string, cmdHandler?: (entity: uc.Entity, cmdId: string, params?: { [key: string]: string | number | boolean }) => Promise<uc.StatusCodes>): Select {
     const options = this.getListeningModeOptions(undefined, avrEntry);
     const displayBaseName = this.getDisplayBaseName(avrEntry);
     const selectEntity = new Select(
@@ -283,11 +284,7 @@ export default class EntityRegistrar {
     return selectEntity;
   }
 
-  /**
-   * Return input selector options for the given AVR entry. If a user-configured
-   * `inputSelectorOptions` list is present it is returned exactly; otherwise all
-   * SLI keys (excluding navigation/query keys) are returned sorted.
-   */
+  // Return input selector options for the given AVR entry. If a user-configured `inputSelectorOptions` list is present it is returned exactly; otherwise all SLI keys (excluding navigation/query keys) are returned sorted.
   getInputSelectorOptions(avrEntry?: string): string[] {
     if (avrEntry) {
       try {
@@ -298,19 +295,18 @@ export default class EntityRegistrar {
             return match.inputSelectorOptions.map((s) => s.trim());
           }
         }
-      } catch (err) {
+      } catch {
         // ignore and fall back to defaults
       }
     }
     const sliMappings = eiscpMappings.value_mappings.SLI;
     const excludeKeys = ["up", "down", "query"];
-    return Object.keys(sliMappings).filter((key) => !excludeKeys.includes(key)).sort();
+    return Object.keys(sliMappings)
+      .filter((key) => !excludeKeys.includes(key))
+      .sort();
   }
 
-  createInputSelectorSelectEntity(
-    avrEntry: string,
-    cmdHandler?: (entity: uc.Entity, cmdId: string, params?: { [key: string]: string | number | boolean }) => Promise<uc.StatusCodes>
-  ): Select {
+  createInputSelectorSelectEntity(avrEntry: string, cmdHandler?: (entity: uc.Entity, cmdId: string, params?: { [key: string]: string | number | boolean }) => Promise<uc.StatusCodes>): Select {
     const options = this.getInputSelectorOptions(avrEntry);
     const displayBaseName = this.getDisplayBaseName(avrEntry);
     const selectEntity = new Select(

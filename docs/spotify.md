@@ -18,7 +18,7 @@ To set up an Activity for Spotify, have a look at these screenshots:
 
 - User interface, add mediawidget for the AVR with maximum size
 
-  ![](../screenshots/spotify-mediawidget.png)
+  ![](../screenshots/media-widget.png)
 
 - Button mapping: map to the buttons you prefer (for example previous/next can be mapped to channel up/down):
   - volume up/down
@@ -34,7 +34,3 @@ If `input-selector spotify` does not work, check the manual of your AVR to see i
 
 - your AVR _does_ have a Spotify input: run setup of this integration again and increase the value for 'NET sub-source selection delay'
 - your AVR does _not_ have a Spotify input, just try `input-selector net`, see [input-selector](./input-selector.md#net) for more info
-
-_note: after installing a new version of the integration or after a reboot of the remote, it might be needed to close screen on the remote and enter the already active activity again to get the MediaWidget to work, hit next to go to the next song and trigger refresh of the album art_
-
-[back to main README](../README.md#installation-and-usage)
