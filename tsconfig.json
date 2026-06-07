@@ -4,11 +4,13 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "outDir": "dist",
+    "rootDir": ".",
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": false,
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "types": ["node"]
   },
   "include": ["src/**/*", "test/**/*", "types/**/*"],
   "exclude": ["node_modules", "dist"]
