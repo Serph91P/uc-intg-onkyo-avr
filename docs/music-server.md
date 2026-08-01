@@ -1,8 +1,8 @@
 ## Music-server
 
-If your AVR has the option to browse and select songs from a `music server`, this integration van be used to browse that server through your AVR.
+If your AVR has the option to browse and select songs from a `music server`, this integration can be used to browse that server through your AVR.
 
-This integration will try to collect the album art, artist, title and album. All this is collected from the AVR, this integration does not communicate with your Music Server directly. All commands, like `browse`, `play/pause`, `next` and `previous`, will be send to the AVR, the AVR will handle the communication with your Music Server
+This integration will try to collect the artist, title and album. All this is collected from the AVR, this integration does not communicate with your Music Server directly. All commands, like `browse`, `play/pause`, `next` and `previous`, will be send to the AVR, the AVR will handle the communication with your Music Server
 
 ### Music-server activity
 
@@ -38,7 +38,7 @@ It's recommended to _disable_ the setting `Coverflow in media browser` to get th
 
 ### Browse Music-server
 
-The mediabrowser of Unfolded Circle combined with your AVR being able to browse the Music-server service make it possibe to scroll through the Music Server menu just like you would do with the Controller app of your AVR or navigating the menu on you AVR using your TV.
+The mediabrowser of Unfolded Circle combined with your AVR being able to browse the Music-server service make it possibe to scroll through the Music Server menu just like you would do with the Controller app of your AVR or navigating the menu on your AVR using your TV.
 
 Some screenshots:
 
