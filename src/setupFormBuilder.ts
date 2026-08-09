@@ -118,7 +118,7 @@ export class SetupFormBuilder {
           dropdown: {
             value: String(values.createSensorsValue),
             items: [
-              { id: "true", label: { en: "Yes" } },
+              { id: "true", label: { en: "Yes (default)" } },
               { id: "false", label: { en: "No" } }
             ]
           }
@@ -131,8 +131,8 @@ export class SetupFormBuilder {
           dropdown: {
             value: String(values.createRemoteEntityValue),
             items: [
-              { id: "false", label: { en: "No (default)" } },
-              { id: "true", label: { en: "Yes" } }
+              { id: "false", label: { en: "No" } },
+              { id: "true", label: { en: "Yes (default)" } }
             ]
           }
         },

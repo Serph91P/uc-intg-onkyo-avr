@@ -1,5 +1,4 @@
-// Handler for remote-entity commands. The remote entity exposes the same media-player style commands as the
-// media player entity (power, volume, mute, navigation, inputs, ...) plus the generated simple commands.
+// Handler for remote-entity commands.
 
 import * as uc from "@unfoldedcircle/integration-api";
 import { RemoteCommands, RemoteAttributes, RemoteStates } from "@unfoldedcircle/integration-api";
@@ -20,7 +19,7 @@ const INPUT_NAMES_SET = new Set(ALL_INPUT_SELECTOR_NAMES);
 /** Remote command params can also carry arrays (e.g. send_cmd_sequence). */
 type RemoteParams = { [key: string]: string | number | boolean | string[] } | undefined;
 
-export class RemoteCommandHandler {
+export class remoteEntityCommandHandler {
   constructor(
     private readonly driver: uc.IntegrationAPI,
     private readonly connectionManager: IPhysicalConnectionLookup,
@@ -210,7 +209,7 @@ export class RemoteCommandHandler {
         await eiscp.command(zonePrefix("network-usb trdn"));
         return uc.StatusCodes.Ok;
       default:
-        return this.handleSimpleOrRaw(entity, eiscp, zone, cmdId);
+        return this.handleSimpleCommand(entity, eiscp, zone, cmdId);
     }
   }
 
@@ -267,16 +266,7 @@ export class RemoteCommandHandler {
     return uc.StatusCodes.Ok;
   }
 
-  private async handleSimpleOrRaw(entity: uc.Entity, eiscp: EiscpDriver, zone: string, cmdId: string): Promise<uc.StatusCodes> {
-    if (cmdId.startsWith("raw ")) {
-      const rawCmd = cmdId.substring(4).trim().toUpperCase();
-      if (rawCmd.length === 0 || rawCmd.length > MAX_LENGTHS.RAW_COMMAND || !PATTERNS.RAW_COMMAND.test(rawCmd)) {
-        log.error("%s [%s] Invalid raw command: %s", integrationName, entity.id, cmdId);
-        return uc.StatusCodes.BadRequest;
-      }
-      await eiscp.raw(rawCmd);
-      return uc.StatusCodes.Ok;
-    }
+  private async handleSimpleCommand(entity: uc.Entity, eiscp: EiscpDriver, zone: string, cmdId: string): Promise<uc.StatusCodes> {
 
     const commandStr = SIMPLE_COMMANDS_MAP[cmdId];
     if (!commandStr) {

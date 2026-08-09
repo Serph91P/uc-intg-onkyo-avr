@@ -2,7 +2,7 @@
 
 As from v0.9.2, the integration contains an optional **Remote** entity which can be used to control the AVR outside an Activity.
 
-**This is an opt-in feature.** During setup, you can enable it with the **Create remote entity?** dropdown.
+--> add screenshot with remote entity logo
 
 The remote entity is available for every zone configured for the AVR. It exposes:
 
@@ -21,4 +21,6 @@ The `Power` physical button toggles the AVR power state. The power state of the 
 
 ### Reconfiguration
 
-After enabling the remote entity you can still enable or disable it by **reconfiguring** the AVR (Settings → _configure_) — the choice is saved in the config and included in config backup/restore, just like every other setup option.
+You can enable or disable the created of the remote entity by **reconfiguring** the AVR (Settings → _configure_) — the choice is saved in the config and included in config backup/restore, just like every other setup option.
+--> add screenshot of config element
+_note: you need to reboot the remote to see effect_

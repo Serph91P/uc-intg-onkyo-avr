@@ -90,7 +90,7 @@ export const AVR_DEFAULTS = {
   adjustVolumeDispl: true,
   entityNameStyle: "short",
   createSensors: true,
-  createRemoteEntity: false,
+  createRemoteEntity: true,
   netMenuDelay: 500,
   tuneinPresetPosition: 1,
   tuneinMenuStyle: "mypresets",
