@@ -160,8 +160,8 @@ vi.mock("../src/selectEntityHandler.js", () => ({
     return { handle: vi.fn() };
   }
 }));
-vi.mock("../src/remoteCommandHandler.js", () => ({
-  RemoteCommandHandler: function () {
+vi.mock("../src/remoteEntityCommandHandler.js", () => ({
+  remoteEntityCommandHandler: function () {
     return { handle: vi.fn() };
   }
 }));

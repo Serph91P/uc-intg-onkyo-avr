@@ -267,7 +267,6 @@ export class remoteEntityCommandHandler {
   }
 
   private async handleSimpleCommand(entity: uc.Entity, eiscp: EiscpDriver, zone: string, cmdId: string): Promise<uc.StatusCodes> {
-
     const commandStr = SIMPLE_COMMANDS_MAP[cmdId];
     if (!commandStr) {
       log.warn("%s [%s] Unknown command: %s", integrationName, entity.id, cmdId);
