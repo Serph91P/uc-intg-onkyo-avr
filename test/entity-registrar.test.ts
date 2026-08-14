@@ -158,3 +158,82 @@ it("EntityRegistrar builds remote entity with features, buttons, pages and simpl
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+it("Remote entity UI reflects configured input and listening mode options", async () => {
+  const tmp = mkTmpDir();
+  try {
+    const cfgModule = await import("../src/configManager.js");
+    if (typeof (cfgModule as any).setConfigDir === "function") {
+      (cfgModule as any).setConfigDir(tmp);
+    }
+    const inputOptions = ["bd", "tv", "net"];
+    const lmdOptions = ["stereo", "direct"];
+    (cfgModule as any).ConfigManager.save({
+      avrs: [{ model: "TX-RZ50", ip: "192.168.1.2", port: 60128, zone: "main", inputSelectorOptions: inputOptions, listeningModeOptions: lmdOptions, entityNameStyle: "short" }]
+    });
+
+    const module = await import("../src/entityRegistrar.js");
+    const avrStateModule = await import("../src/avrState.js");
+    const EntityRegistrar = module.default as any;
+    const { avrStateManager } = avrStateModule as any;
+    const registrar = new EntityRegistrar(avrStateManager);
+    const avrEntry = "TX-RZ50 192.168.1.2 main";
+
+    const remote = registrar.createRemoteEntity(avrEntry, async () => 0);
+    const pages = (remote as any).options?.user_interface?.pages;
+    expect(Array.isArray(pages)).toBe(true);
+
+    const avrPage = pages[0];
+    expect(avrPage.grid).toEqual({ width: 8, height: 8 });
+    expect(avrPage.items.filter((item: any) => item.type === "text").map((i: any) => i.text)).not.toContain("BD");
+
+    const inputPage = pages.find((p: any) => p.name === "Source");
+    expect(inputPage).toBeTruthy();
+    const texts = inputPage.items.filter((item: any) => item.type === "text").map((item: any) => ({ text: item.text, cmd: item.command?.params?.command, x: item.location.x, y: item.location.y }));
+
+    // Configured options rendered as buttons at the top of the input page
+    expect(texts).toContainEqual({ text: "Sources:", cmd: undefined, x: 0, y: 0 });
+    expect(texts).toContainEqual({ text: "BD", cmd: "INPUT_BD", x: 0, y: 1 });
+    expect(texts).toContainEqual({ text: "TV", cmd: "INPUT_TV", x: 1, y: 1 });
+    expect(texts).toContainEqual({ text: "NET", cmd: "INPUT_NET", x: 2, y: 1 });
+    const inputCmds = texts.filter((t: any) => t.cmd?.startsWith("INPUT_")).length;
+    expect(inputCmds).toBe(3);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+it("Remote entity caps large option lists per page without emptying them", async () => {
+  const tmp = mkTmpDir();
+  try {
+    const cfgModule = await import("../src/configManager.js");
+    if (typeof (cfgModule as any).setConfigDir === "function") {
+      (cfgModule as any).setConfigDir(tmp);
+    }
+    (cfgModule as any).ConfigManager.save({
+      avrs: [{ model: "TX-RZ50", ip: "192.168.1.2", port: 60128, zone: "main", entityNameStyle: "short" }]
+    });
+
+    const module = await import("../src/entityRegistrar.js");
+    const avrStateModule = await import("../src/avrState.js");
+    const EntityRegistrar = module.default as any;
+    const { avrStateManager } = avrStateModule as any;
+    const registrar = new EntityRegistrar(avrStateManager);
+    const avrEntry = "TX-RZ50 192.168.1.2 main";
+
+    const remote = registrar.createRemoteEntity(avrEntry, async () => 0);
+    const pages = (remote as any).options?.user_interface?.pages;
+
+    const lmPage = pages.find((p: any) => p.name === "Listening Mode");
+    expect(lmPage).toBeTruthy();
+    const lmOptions = lmPage.items.filter((item: any) => item.type === "text" && item.command?.params?.command?.startsWith("LISTENING_MODE_")).length;
+    expect(lmOptions).toBeGreaterThan(0);
+
+    const sourcePage = pages.find((p: any) => p.name === "Source");
+    expect(sourcePage).toBeTruthy();
+    const sourceOptions = sourcePage.items.filter((item: any) => item.type === "text" && item.command?.params?.command?.startsWith("INPUT_")).length;
+    expect(sourceOptions).toBeGreaterThan(0);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});

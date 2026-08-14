@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { EventEmitter } from "node:events";
 import * as uc from "@unfoldedcircle/integration-api";
 
 vi.mock("../src/utils.js", () => ({
@@ -11,15 +12,13 @@ const AVR_ENTRY = "TX-RZ50 192.168.1.100 main";
 const REMOTE_ID = `${AVR_ENTRY}_remote`;
 
 function makeMockEiscp(connected = true) {
-  return {
-    get connected() {
-      return connected;
-    },
-    connect: vi.fn().mockResolvedValue({ model: "TX-RZ50", host: "192.168.1.100", port: 60128 }),
-    waitForConnect: vi.fn().mockResolvedValue(undefined),
-    command: vi.fn().mockResolvedValue(undefined),
-    raw: vi.fn().mockResolvedValue(undefined)
-  };
+  const eiscp: any = new EventEmitter();
+  eiscp.connected = connected;
+  eiscp.connect = vi.fn().mockResolvedValue({ model: "TX-RZ50", host: "192.168.1.100", port: 60128 });
+  eiscp.waitForConnect = vi.fn().mockResolvedValue(undefined);
+  eiscp.command = vi.fn().mockResolvedValue(undefined);
+  eiscp.raw = vi.fn().mockResolvedValue(undefined);
+  return eiscp;
 }
 
 function makeHandler(overrides: any = {}) {
@@ -225,6 +224,70 @@ describe("remoteEntityCommandHandler", () => {
 
     expect(result).toBe(uc.StatusCodes.Ok);
     expect(mock.mockEiscp.command).toHaveBeenCalledWith("dimmer-level bright");
+  });
+
+  it("executes vocal up/down as stateful absolute levels", async () => {
+    const mock = makeHandler();
+    const handler = await createHandler(mock);
+
+    let currentLevel = 1;
+    mock.mockEiscp.raw = vi.fn().mockImplementation((cmd: string) => {
+      if (cmd === "VOCQSTN") {
+        setImmediate(() => mock.mockEiscp.emit("data", { command: "vocal", argument: currentLevel }));
+      }
+      return Promise.resolve();
+    });
+
+    const entity = { id: REMOTE_ID, attributes: {} };
+    const upResult = await handler.handle(entity, "VOCAL_UP", {});
+    currentLevel = 2;
+    const downResult = await handler.handle(entity, "VOCAL_DOWN", {});
+
+    expect(upResult).toBe(uc.StatusCodes.Ok);
+    expect(downResult).toBe(uc.StatusCodes.Ok);
+    expect(mock.mockEiscp.raw).toHaveBeenCalledWith("VOCQSTN");
+    expect(mock.mockEiscp.raw).toHaveBeenCalledWith("VOC02");
+    expect(mock.mockEiscp.raw).toHaveBeenCalledWith("VOC01");
+  });
+
+  it("clamps vocal level at 0 and 5", async () => {
+    const mock = makeHandler();
+    const handler = await createHandler(mock);
+
+    let currentLevel = 5;
+    mock.mockEiscp.raw = vi.fn().mockImplementation((cmd: string) => {
+      if (cmd === "VOCQSTN") {
+        setImmediate(() => mock.mockEiscp.emit("data", { command: "vocal", argument: currentLevel }));
+      }
+      return Promise.resolve();
+    });
+
+    const entity = { id: REMOTE_ID, attributes: {} };
+    await handler.handle(entity, "VOCAL_UP", {});
+    currentLevel = 0;
+    await handler.handle(entity, "VOCAL_DOWN", {});
+
+    expect(mock.mockEiscp.raw).toHaveBeenCalledWith("VOC05");
+    expect(mock.mockEiscp.raw).toHaveBeenCalledWith("VOC00");
+  });
+
+  it("returns Ok without sending when vocal level query times out", async () => {
+    vi.useFakeTimers();
+    try {
+      const mock = makeHandler();
+      const handler = await createHandler(mock);
+      const entity = { id: REMOTE_ID, attributes: {} };
+
+      const pending = handler.handle(entity, "VOCAL_UP", {});
+      await vi.advanceTimersByTimeAsync(2000);
+      const result = await pending;
+
+      expect(result).toBe(uc.StatusCodes.Ok);
+      expect(mock.mockEiscp.raw).toHaveBeenCalledWith("VOCQSTN");
+      expect(mock.mockEiscp.raw).not.toHaveBeenCalledWith("VOC02");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("returns NotImplemented for unknown command IDs", async () => {

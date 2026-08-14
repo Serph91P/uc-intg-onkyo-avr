@@ -41,6 +41,10 @@ const h = vi.hoisted(() => {
       }),
       getConfigDirPath: vi.fn(() => "/fake/config/dir"),
       addAvailableEntity: vi.fn(),
+      getAvailableEntities: vi.fn(() => ({
+        contains: vi.fn(() => false),
+        removeEntity: vi.fn()
+      })),
       setDeviceState: vi.fn(),
       updateEntityAttributes: vi.fn()
     },
@@ -472,6 +476,22 @@ describe("OnkyoDriver", () => {
       const driver = await createDriver();
 
       expect(mockEntityRegistrar.createRemoteEntity).not.toHaveBeenCalled();
+    });
+
+    it("replaces an already registered entity so updated definitions take effect", async () => {
+      const configModule = await import("../src/configManager.js");
+      (configModule.ConfigManager.load as any).mockReturnValueOnce({
+        avrs: [{ model: "TX-RZ50", ip: "1.2.3.4", zone: "main", createRemoteEntity: true }],
+        logLevel: "info"
+      });
+
+      const pool = { contains: vi.fn(() => true), removeEntity: vi.fn() };
+      mockDriver.getAvailableEntities.mockReturnValue(pool);
+
+      const driver = await createDriver();
+
+      expect(pool.removeEntity).toHaveBeenCalledWith("remote_entity");
+      expect(mockDriver.addAvailableEntity).toHaveBeenCalledWith({ id: "remote_entity" });
     });
   });
 

@@ -239,6 +239,13 @@ export default class OnkyoDriver {
         }
         const entities = [registration.create()].flat() as uc.Entity[];
         for (const entity of entities) {
+          // Re-registration (e.g. after a config save) must replace the existing entity so updated
+          // definitions take effect — addAvailableEntity silently keeps the old entity otherwise.
+          const availablePool = this.driver.getAvailableEntities?.();
+          if (availablePool && availablePool.contains(entity.id)) {
+            log.info("%s [%s] Re-registering existing entity with updated definition: %s", integrationName, avrEntry, entity.id);
+            availablePool.removeEntity(entity.id);
+          }
           this.driver.addAvailableEntity(entity);
           log.info("%s [%s] Entity registered: %s", integrationName, avrEntry, entity.id);
         }

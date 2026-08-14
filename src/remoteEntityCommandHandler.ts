@@ -16,6 +16,11 @@ import { AvrConfig } from "./configManager.js";
 const integrationName = "remoteHandler:";
 const INPUT_NAMES_SET = new Set(ALL_INPUT_SELECTOR_NAMES);
 
+/** Vocal (Dialog Enhancement) absolute level range: 0 (off) .. 5. */
+const VOCAL_LEVEL_MAX = 5;
+/** How long to wait for the VOCQSTN response before giving up. */
+const VOCAL_QUERY_TIMEOUT_MS = 2000;
+
 /** Remote command params can also carry arrays (e.g. send_cmd_sequence). */
 type RemoteParams = { [key: string]: string | number | boolean | string[] } | undefined;
 
@@ -208,6 +213,10 @@ export class remoteEntityCommandHandler {
       case uc.MediaPlayerCommands.Previous:
         await eiscp.command(zonePrefix("network-usb trdn"));
         return uc.StatusCodes.Ok;
+      case "VOCAL_UP":
+        return this.adjustVocal(eiscp, entity, avrEntry, 1);
+      case "VOCAL_DOWN":
+        return this.adjustVocal(eiscp, entity, avrEntry, -1);
       default:
         return this.handleSimpleCommand(entity, eiscp, zone, cmdId);
     }
@@ -277,6 +286,43 @@ export class remoteEntityCommandHandler {
     log.info("%s [%s] executing simple command '%s' → %s", integrationName, entity.id, cmdId, zonePrefixed);
     await eiscp.command(zonePrefixed);
     return uc.StatusCodes.Ok;
+  }
+
+  private async adjustVocal(eiscp: EiscpDriver, entity: uc.Entity, avrEntry: string, delta: number): Promise<uc.StatusCodes> {
+    const current = await this.queryVocalLevel(eiscp, entity, avrEntry);
+    if (current === undefined) {
+      log.warn("%s [%s] Could not determine current vocal level, ignoring %s", integrationName, entity.id, delta > 0 ? "up" : "down");
+      return uc.StatusCodes.Ok;
+    }
+    const next = Math.max(0, Math.min(VOCAL_LEVEL_MAX, current + delta));
+    log.info("%s [%s] vocal level %d -> %d", integrationName, entity.id, current, next);
+    await eiscp.raw(`VOC${toHex(next, 2)}`);
+    return uc.StatusCodes.Ok;
+  }
+
+  private async queryVocalLevel(eiscp: EiscpDriver, entity: uc.Entity, _avrEntry: string): Promise<number | undefined> {
+    return new Promise<number | undefined>((resolve) => {
+      const timer = setTimeout(() => {
+        log.warn("%s [%s] Timed out waiting for vocal level response", integrationName, entity.id);
+        eiscp.off("data", onData);
+        resolve(undefined);
+      }, VOCAL_QUERY_TIMEOUT_MS);
+      const onData = (payload: { command?: string; argument?: string | number }): void => {
+        if (payload?.command !== "vocal") return;
+        const level = typeof payload.argument === "number" ? payload.argument : parseInt(String(payload.argument), 16);
+        if (Number.isInteger(level)) {
+          clearTimeout(timer);
+          eiscp.off("data", onData);
+          resolve(level);
+        }
+      };
+      eiscp.on("data", onData);
+      eiscp.raw("VOCQSTN").catch(() => {
+        clearTimeout(timer);
+        eiscp.off("data", onData);
+        resolve(undefined);
+      });
+    });
   }
 
   private zonePrefixed(zone: string, cmd: string): string {

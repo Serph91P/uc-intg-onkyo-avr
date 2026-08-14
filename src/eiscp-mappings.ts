@@ -20,6 +20,7 @@ export const eiscpMappings = {
     "speaker-level-calibration": "SLC",
     "subwoofer-temporary-level": "SWL",
     "center-temporary-level": "CTL",
+    vocal: "VOC",
     "display-mode": "DIF",
     "dimmer-level": "DIM",
     setup: "OSD",
@@ -277,6 +278,7 @@ export const eiscpMappings = {
       query: { value: "QSTN" }
     },
     SLP: {
+      intgrRange: { value: "1,90" },
       "time-1-90min": { value: "1,90" },
       "time-off": { value: "OFF" },
       up: { value: "UP" },
@@ -298,6 +300,15 @@ export const eiscpMappings = {
       "12db-0db-12db": { value: "-12,0,12" },
       up: { value: "UP" },
       down: { value: "DOWN" },
+      query: { value: "QSTN" }
+    },
+    VOC: {
+      "0": { value: "00" },
+      "1": { value: "01" },
+      "2": { value: "02" },
+      "3": { value: "03" },
+      "4": { value: "04" },
+      "5": { value: "05" },
       query: { value: "QSTN" }
     },
     DIF: {
@@ -326,7 +337,8 @@ export const eiscpMappings = {
       exit: { value: "EXIT" },
       audio: { value: "AUDIO" },
       video: { value: "VIDEO" },
-      home: { value: "HOME" }
+      home: { value: "HOME" },
+      quick: { value: "QUICK" }
     },
     MEM: {
       str: { value: "STR" },
