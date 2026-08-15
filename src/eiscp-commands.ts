@@ -84,6 +84,15 @@ export const eiscpCommands = {
         QSTN: { name: "query", description: "gets the Speaker State" }
       }
     },
+    SAM: {
+      name: "stereo-assign",
+      description: "Stereo Assign Mode Command",
+      values: {
+        FR: { name: "front", description: "assigns Stereo to Front" },
+        SR: { name: "surround", description: "assigns Stereo to Surround" },
+        QSTN: { name: "query", description: "gets the Stereo Assign Mode" }
+      }
+    },
     MVL: {
       name: "volume",
       description: "Master Volume Command",

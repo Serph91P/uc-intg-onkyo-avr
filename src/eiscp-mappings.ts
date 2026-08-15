@@ -6,6 +6,7 @@ export const eiscpMappings = {
     "speaker-a": "SPA",
     "speaker-b": "SPB",
     "speaker-layout": "SPL",
+    "stereo-assign": "SAM",
     "master-volume": "MVL",
     volume: "MVL",
     "multi-zone-volume": "MZV",
@@ -220,6 +221,11 @@ export const eiscpMappings = {
       "surrback-front-wide-speakers": { value: "FW" },
       "front-high-front-wide-speakers": { value: "HW" },
       up: { value: "UP" },
+      query: { value: "QSTN" }
+    },
+    SAM: {
+      front: { value: "FR" },
+      surround: { value: "SR" },
       query: { value: "QSTN" }
     },
     MVL: {

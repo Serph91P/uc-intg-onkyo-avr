@@ -110,6 +110,7 @@ const COMMAND_DEFS: SimpleCommandDef[] = [
   { command: "speaker-a", prefix: "SPEAKER_A" },
   { command: "speaker-b", prefix: "SPEAKER_B" },
   { command: "speaker-level-calibration", prefix: "SPEAKER_LEVEL" },
+  { command: "stereo-assign", prefix: "STEREO_ASSIGN" },
   { command: "subwoofer-temporary-level", prefix: "SUBWOOFER_TEMP_LEVEL", excludeValues: ["-15db-0db-15db"] },
   { command: "tone-center", prefix: "TONE_CENTER", excludeValues: ["b-xx", "t-xx"] },
   { command: "tone-front", prefix: "TONE_FRONT", excludeValues: ["b-xx", "t-xx"] },
