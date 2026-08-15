@@ -159,7 +159,7 @@ it("EntityRegistrar builds remote entity with features, buttons, pages and simpl
   }
 });
 
-it("Remote entity UI reflects configured input and listening mode options", async () => {
+it("Remote entity UI is a static set of command pages", async () => {
   const tmp = mkTmpDir();
   try {
     const cfgModule = await import("../src/configManager.js");
@@ -184,34 +184,28 @@ it("Remote entity UI reflects configured input and listening mode options", asyn
     expect(Array.isArray(pages)).toBe(true);
 
     const avrPage = pages[0];
-    expect(avrPage.grid).toEqual({ width: 8, height: 8 });
+    expect(avrPage.grid).toEqual({ width: 7, height: 8 });
     expect(avrPage.items.filter((item: any) => item.type === "text").map((i: any) => i.text)).not.toContain("BD");
 
+    // Configured options no longer generate dedicated UI pages
     const inputPage = pages.find((p: any) => p.name === "Source");
-    expect(inputPage).toBeTruthy();
-    const texts = inputPage.items.filter((item: any) => item.type === "text").map((item: any) => ({ text: item.text, cmd: item.command?.params?.command, x: item.location.x, y: item.location.y }));
-
-    // Configured options rendered as buttons at the top of the input page
-    expect(texts).toContainEqual({ text: "Sources:", cmd: undefined, x: 0, y: 0 });
-    expect(texts).toContainEqual({ text: "BD", cmd: "INPUT_BD", x: 0, y: 1 });
-    expect(texts).toContainEqual({ text: "TV", cmd: "INPUT_TV", x: 1, y: 1 });
-    expect(texts).toContainEqual({ text: "NET", cmd: "INPUT_NET", x: 2, y: 1 });
-    const inputCmds = texts.filter((t: any) => t.cmd?.startsWith("INPUT_")).length;
-    expect(inputCmds).toBe(3);
+    expect(inputPage).toBeUndefined();
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
 
-it("Remote entity caps large option lists per page without emptying them", async () => {
+it("Remote entity UI stays static regardless of configured options", async () => {
   const tmp = mkTmpDir();
   try {
     const cfgModule = await import("../src/configManager.js");
     if (typeof (cfgModule as any).setConfigDir === "function") {
       (cfgModule as any).setConfigDir(tmp);
     }
+    const inputOptions = ["bd", "tv", "net", "game", "pc", "cbl", "aux"];
+    const lmdOptions = ["stereo", "direct", "movie", "music", "game", "thx", "straight-decode", "pure-audio", "neural-thx"];
     (cfgModule as any).ConfigManager.save({
-      avrs: [{ model: "TX-RZ50", ip: "192.168.1.2", port: 60128, zone: "main", entityNameStyle: "short" }]
+      avrs: [{ model: "TX-RZ50", ip: "192.168.1.2", port: 60128, zone: "main", inputSelectorOptions: inputOptions, listeningModeOptions: lmdOptions, entityNameStyle: "short" }]
     });
 
     const module = await import("../src/entityRegistrar.js");
@@ -225,14 +219,10 @@ it("Remote entity caps large option lists per page without emptying them", async
     const pages = (remote as any).options?.user_interface?.pages;
 
     const lmPage = pages.find((p: any) => p.name === "Listening Mode");
-    expect(lmPage).toBeTruthy();
-    const lmOptions = lmPage.items.filter((item: any) => item.type === "text" && item.command?.params?.command?.startsWith("LISTENING_MODE_")).length;
-    expect(lmOptions).toBeGreaterThan(0);
-
+    expect(lmPage).toBeUndefined();
     const sourcePage = pages.find((p: any) => p.name === "Source");
-    expect(sourcePage).toBeTruthy();
-    const sourceOptions = sourcePage.items.filter((item: any) => item.type === "text" && item.command?.params?.command?.startsWith("INPUT_")).length;
-    expect(sourceOptions).toBeGreaterThan(0);
+    expect(sourcePage).toBeUndefined();
+    expect(pages.length).toBe(3);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }

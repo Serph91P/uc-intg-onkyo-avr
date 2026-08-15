@@ -316,9 +316,6 @@ export default class EntityRegistrar {
 
   // Remote entity — optional (createRemoteEntity config)
   createRemoteEntity(avrEntry: string, cmdHandler?: CmdHandlerFn): uc.Remote {
-    return buildRemoteEntity(avrEntry, this.getDisplayBaseName(avrEntry), cmdHandler, {
-      inputSelectorOptions: this.getInputSelectorOptions(avrEntry),
-      listeningModeOptions: this.getListeningModeOptions(undefined, avrEntry)
-    });
+    return buildRemoteEntity(avrEntry, this.getDisplayBaseName(avrEntry), cmdHandler);
   }
 }
