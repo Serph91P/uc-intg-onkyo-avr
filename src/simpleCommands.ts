@@ -75,6 +75,7 @@ function generateSimpleCommands(defs: SimpleCommandDef[]): Record<string, string
 }
 
 const COMMAND_DEFS: SimpleCommandDef[] = [
+  { command: "accueq", prefix: "ACCUEQ"},
   { command: "audio-muting", prefix: "MUTE" },
   { command: "audio-return-channel", prefix: "AUDIO_RETURN_CHANNEL" },
   { command: "audio-selector", prefix: "AUDIO_SELECTOR" },
@@ -83,7 +84,8 @@ const COMMAND_DEFS: SimpleCommandDef[] = [
   { command: "audyssey-dynamic-volume", prefix: "AUDYSSEY_DYNAMIC_VOLUME" },
   { command: "auto-power-down", prefix: "AUTO_POWER_DOWN" },
   { command: "av-sync", prefix: "AV_SYNC" },
-  { command: "center-temporary-level", prefix: "CENTER_LEVEL" },
+  { command: "bluetooth-setting", prefix: "BLUETOOTH_SETTING"},
+  { command: "center-temporary-level", prefix: "CENTER_TEMP_LEVEL" },
   { command: "cinema-filter", prefix: "CINEMA_FILTER" },
   { command: "dimmer-level", prefix: "DIMMER" },
   { command: "dirac", prefix: "DIRAC" },
@@ -121,8 +123,8 @@ const COMMAND_DEFS: SimpleCommandDef[] = [
   { command: "tone-surround-back", prefix: "TONE_SURROUND_BACK", excludeValues: ["b-xx", "t-xx"] },
   { command: "tunein-preset", prefix: "TUNEIN_PRESET" },
   { command: "tuning", prefix: "TUNING" },
-  { command: "video-picture-mode", prefix: "VIDEO_PICTURE_MODE", excludeValues: ["up"] },
-  { command: "video-wide-mode", prefix: "VIDEO_WIDE_MODE", excludeValues: ["up"] },
+  { command: "video-picture-mode", prefix: "VIDEO_PICTURE_MODE"},
+  { command: "video-wide-mode", prefix: "VIDEO_WIDE_MODE" },
   { command: "vocal", prefix: "VOCAL" }
 ];
 

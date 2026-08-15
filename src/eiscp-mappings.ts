@@ -226,6 +226,7 @@ export const eiscpMappings = {
     SAM: {
       front: { value: "FR" },
       surround: { value: "SR" },
+      up: { value: "UP" },
       query: { value: "QSTN" }
     },
     MVL: {

@@ -90,6 +90,7 @@ export const eiscpCommands = {
       values: {
         FR: { name: "front", description: "assigns Stereo to Front" },
         SR: { name: "surround", description: "assigns Stereo to Surround" },
+        UP: { name: "up", description: "sets Stereo Assign Mode Wrap-Around" },
         QSTN: { name: "query", description: "gets the Stereo Assign Mode" }
       }
     },
