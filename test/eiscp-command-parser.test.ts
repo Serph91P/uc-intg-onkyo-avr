@@ -305,3 +305,19 @@ it("IscpCommandParser FLD sanitizes characters and skips service text outside NE
   const parserOther = new IscpCommandParser(other.getEntityId, other.stateReader, other.deezerStoreApi, other.tidalStoreApi, other.tuneInStoreApi);
   expect(parserOther.parse("FLD", toHex("Spotify"))).toBe(null);
 });
+
+it("IscpCommandParser decodes VOC responses as numeric vocal levels", async () => {
+  const parserModule = await import("../src/eiscp-command-parser.js");
+  const { IscpCommandParser } = parserModule as { IscpCommandParser: new (...deps: any) => any };
+
+  const h = makeParserHarness();
+  const parser = new IscpCommandParser(h.getEntityId, h.stateReader, h.deezerStoreApi, h.tidalStoreApi, h.tuneInStoreApi);
+
+  const level2 = parser.parse("VOC", "02");
+  expect(level2?.command).toBe("vocal");
+  expect(level2?.argument).toBe(2);
+
+  const level0 = parser.parse("VOC", "00");
+  expect(level0?.command).toBe("vocal");
+  expect(level0?.argument).toBe(0);
+});

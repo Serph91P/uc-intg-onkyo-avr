@@ -84,6 +84,16 @@ export const eiscpCommands = {
         QSTN: { name: "query", description: "gets the Speaker State" }
       }
     },
+    SAM: {
+      name: "stereo-assign",
+      description: "Stereo Assign Mode Command",
+      values: {
+        FR: { name: "front", description: "assigns Stereo to Front" },
+        SR: { name: "surround", description: "assigns Stereo to Surround" },
+        UP: { name: "up", description: "sets Stereo Assign Mode Wrap-Around" },
+        QSTN: { name: "query", description: "gets the Stereo Assign Mode" }
+      }
+    },
     MVL: {
       name: "volume",
       description: "Master Volume Command",
@@ -275,9 +285,9 @@ export const eiscpCommands = {
       name: "subwoofer-temporary-level",
       description: "Subwoofer (temporary) Level Command",
       values: {
-        "-15,0,12": {
-          name: "15db-0db-12db",
-          description: "sets Subwoofer Level -15dB - 0dB - +12dB"
+        "-15,0,15": {
+          name: "-15db-0db-15db",
+          description: "sets Subwoofer Level -15dB - 0dB - +15dB"
         },
         UP: { name: "up", description: "LEVEL + Key" },
         DOWN: { name: "down", description: "LEVEL – KEY" },
@@ -297,6 +307,19 @@ export const eiscpCommands = {
         QSTN: { name: "query", description: "gets the Subwoofer Level" }
       }
     },
+    VOC: {
+      name: "vocal",
+      description: "Vocal (Dialog Enhancement) Level Command",
+      values: {
+        "00": { name: "0", description: "sets Vocal Level 0" },
+        "01": { name: "1", description: "sets Vocal Level 1" },
+        "02": { name: "2", description: "sets Vocal Level 2" },
+        "03": { name: "3", description: "sets Vocal Level 3" },
+        "04": { name: "4", description: "sets Vocal Level 4" },
+        "05": { name: "5", description: "sets Vocal Level 5" },
+        QSTN: { name: "query", description: "gets the Vocal Level" }
+      }
+    },
     DIF: {
       name: "display-mode",
       description: "Display Mode Command",
@@ -306,9 +329,9 @@ export const eiscpCommands = {
           name: "selector-listening",
           description: "sets Selector + Listening Mode Display Mode"
         },
-        "02": { name: "02", description: "Display Digital Format(temporary display)" },
-        "03": { name: "03", description: "Display Video Format(temporary display)" },
-        TG: { name: "toggle", description: "sets Display Mode Wrap-Around Up" },
+        "02": { name: "02", description: "Display Digital Format" },
+        "03": { name: "03", description: "Display Video Format" },
+        TG: { name: "toggle", description: "Toggle" },
         QSTN: { name: "query", description: "gets The Display Mode" }
       }
     },
@@ -341,7 +364,8 @@ export const eiscpCommands = {
         EXIT: { name: "exit", description: "Exit Key" },
         AUDIO: { name: "audio", description: "Audio Adjust Key" },
         VIDEO: { name: "video", description: "Video Adjust Key" },
-        HOME: { name: "home", description: "Home Key" }
+        HOME: { name: "home", description: "Home Key" },
+        QUICK: { name: "quick", description: "Quick Setup Key / Quick Menu Key" }
       }
     },
     MEM: {

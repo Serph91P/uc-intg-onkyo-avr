@@ -46,6 +46,14 @@ describe("commandToIscp", () => {
     expect(driver.commandToIscp("system-power", "query", "main")).toBe("PWRQSTN");
   });
 
+  it("translates vocal levels 0-5 to VOC00-VOC05", async () => {
+    const driver = await makeDriver();
+    for (let level = 0; level <= 5; level++) {
+      expect(driver.commandToIscp("vocal", String(level), "main")).toBe(`VOC0${level}`);
+    }
+    expect(driver.commandToIscp("vocal", "query", "main")).toBe("VOCQSTN");
+  });
+
   it("returns zonePrefix + raw string for unknown args", async () => {
     const driver = await makeDriver();
     expect(driver.commandToIscp("system-power", "bogus", "main")).toBe("PWRbogus");

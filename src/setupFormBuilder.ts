@@ -118,11 +118,25 @@ export class SetupFormBuilder {
           dropdown: {
             value: String(values.createSensorsValue),
             items: [
-              { id: "true", label: { en: "Yes" } },
+              { id: "true", label: { en: "Yes (default)" } },
               { id: "false", label: { en: "No" } }
             ]
           }
         }
+      },
+      {
+        id: "createRemoteEntity",
+        label: { en: "Create remote entity?" },
+        field: {
+          dropdown: {
+            value: String(values.createRemoteEntityValue),
+            items: [
+              { id: "false", label: { en: "No" } },
+              { id: "true", label: { en: "Yes (default)" } }
+            ]
+          }
+        },
+        description: { en: "Creates a remote entity with physical button mapping and a command page to send AVR commands, e.g. power, volume, mute, navigation, input and sleep timers." }
       },
       {
         id: "logLevel",

@@ -74,6 +74,7 @@ export class IscpCommandParser {
       DSN: (value, _cmd, result) => this.handleDSN(value, result),
       NST: (value, _cmd, result) => this.handleNST(value, result),
       FLD: (value, _cmd, result) => this.handleFLD(value, result),
+      VOC: (value, _cmd, result) => this.handleVocal(value, result),
       NLT: (value, _cmd, result) => this.handleNLT(value, result),
       NLS: (value, _cmd, result) => this.handleNLS(value, result),
       NLA: (value, _cmd, result) => this.handleNLA(value, result)
@@ -529,5 +530,12 @@ export class IscpCommandParser {
         return result;
       }
     }
+  }
+
+  private handleVocal(value: string, result: CommandResult): CommandResult {
+    const level = parseInt(value, 16);
+    result.command = "vocal";
+    result.argument = Number.isNaN(level) ? value : level;
+    return result;
   }
 }
