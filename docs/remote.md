@@ -7,6 +7,9 @@ As from v0.9.2, the integration contains an optional **Remote** entity which can
 The remote entity is available for every zone configured for the AVR. It exposes:
 
 - Physical **button mapping** so the remote's volume, mute, power, back, home, channel and direction pad buttons control the AVR.
+
+* play prev nex mention all buttons
+
 - **3 UI pages** with on-screen buttons:
   - **AVR commands** — power, info, settings, volume, mute, dimmer, listening modes
   - **Direction pad** — navigation for menus/on-screen display

@@ -222,7 +222,7 @@ it("Remote entity UI stays static regardless of configured options", async () =>
     expect(lmPage).toBeUndefined();
     const sourcePage = pages.find((p: any) => p.name === "Source");
     expect(sourcePage).toBeUndefined();
-    expect(pages.length).toBe(3);
+    expect(pages.length).toBe(4);
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
