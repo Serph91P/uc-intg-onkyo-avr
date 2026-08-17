@@ -16,6 +16,7 @@ import SetupHandler from "./setupHandler.js";
 import EntityRegistrar from "./entityRegistrar.js";
 import ConnectionManager from "./connectionManager.js";
 import { SelectEntityHandler } from "./selectEntityHandler.js";
+import { remoteEntityCommandHandler } from "./remoteEntityCommandHandler.js";
 import SubscriptionHandler from "./subscriptionHandler.js";
 import ConnectCoordinator from "./connectCoordinator.js";
 import { AvrInstance, type AvrStateApi } from "./types.js";
@@ -52,6 +53,7 @@ export default class OnkyoDriver {
   private entityRegistrar: EntityRegistrar;
   private listeningModeHandler: SelectEntityHandler;
   private inputSelectorHandler: SelectEntityHandler;
+  private remoteEntityCommandHandler: remoteEntityCommandHandler;
   private subscriptionHandler: SubscriptionHandler;
   private connectCoordinator: ConnectCoordinator;
 
@@ -100,6 +102,7 @@ export default class OnkyoDriver {
     this.inputSelectorHandler = new SelectEntityHandler(this.driver, this.connectionManager, this.avrInstances, "_input_selector", "input-selector", "Input Selector", (avrEntry) =>
       this.entityRegistrar.getInputSelectorOptions(avrEntry)
     );
+    this.remoteEntityCommandHandler = new remoteEntityCommandHandler(this.driver, this.connectionManager, this.avrInstances, this.avrStateApi);
     this.subscriptionHandler = new SubscriptionHandler(this.connectionManager, this.avrInstances);
 
     // Create connect coordinator — orchestrates physical connections, zone instances, and initial queries
@@ -168,6 +171,16 @@ export default class OnkyoDriver {
         disabledMessage: `${integrationName} [${avrEntry}] Sensor entities disabled by user preference`
       },
 
+      // ── Remote entity — conditional on createRemoteEntity flag ─────────────
+      {
+        enabled: (cfg) => cfg.createRemoteEntity === true,
+        create: () => {
+          const handler = this.remoteEntityCommandHandler?.handle.bind(this.remoteEntityCommandHandler) ?? (async () => uc.StatusCodes.Ok);
+          return this.entityRegistrar.createRemoteEntity(avrEntry, handler);
+        },
+        disabledMessage: `${integrationName} [${avrEntry}] Remote entity disabled by user preference`
+      },
+
       // ── Listening Mode select — conditional on listeningModeOptions ─────────
       {
         enabled: (cfg) => cfg.listeningModeOptions !== null,
@@ -226,6 +239,13 @@ export default class OnkyoDriver {
         }
         const entities = [registration.create()].flat() as uc.Entity[];
         for (const entity of entities) {
+          // Re-registration (e.g. after a config save) must replace the existing entity so updated
+          // definitions take effect — addAvailableEntity silently keeps the old entity otherwise.
+          const availablePool = this.driver.getAvailableEntities?.();
+          if (availablePool && availablePool.contains(entity.id)) {
+            log.info("%s [%s] Re-registering existing entity with updated definition: %s", integrationName, avrEntry, entity.id);
+            availablePool.removeEntity(entity.id);
+          }
           this.driver.addAvailableEntity(entity);
           log.info("%s [%s] Entity registered: %s", integrationName, avrEntry, entity.id);
         }
