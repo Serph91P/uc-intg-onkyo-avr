@@ -29,7 +29,7 @@ A remote entity is created for every zone configured for the AVR. It exposes:
 
 ### Reconfigure
 
-You can enable or disable the creation of the remote entity by **reconfiguring** the AVR. 
+You can enable or disable the creation of the remote entity by **reconfiguring** the integration. 
 
 ![](/screenshots/remote-entity-config.png)
 
