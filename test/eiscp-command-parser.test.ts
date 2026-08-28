@@ -345,3 +345,70 @@ it("IscpCommandParser maps DSS query responses (100/200/300/400) to dirac slot k
   const query = parser.parse("DSS", "QSTN");
   expect(query?.argument).toBe("query");
 });
+
+it("IscpCommandParser decodes TFR tone-front responses into bass and treble", async () => {
+  const parserModule = await import("../src/eiscp-command-parser.js");
+  const { IscpCommandParser } = parserModule as { IscpCommandParser: new (...deps: any) => any };
+
+  const h = makeParserHarness();
+  const parser = new IscpCommandParser(h.getEntityId, h.stateReader, h.deezerStoreApi, h.tidalStoreApi, h.tuneInStoreApi);
+
+  const flat = parser.parse("TFR", "B00T00");
+  expect(flat?.command).toBe("tone-front");
+  expect(flat?.argument).toEqual({ bass: "0", treble: "0" });
+
+  const bassUp = parser.parse("TFR", "B+AT-4");
+  expect(bassUp?.argument).toEqual({ bass: "10", treble: "-4" });
+
+  const bassDown = parser.parse("TFR", "B-6T+2");
+  expect(bassDown?.argument).toEqual({ bass: "-6", treble: "2" });
+
+  const malformed = parser.parse("TFR", "BUP");
+  expect(malformed).toBe(null);
+});
+
+it("IscpCommandParser decodes CTL center-temporary-level responses in 0.5 dB steps", async () => {
+  const parserModule = await import("../src/eiscp-command-parser.js");
+  const { IscpCommandParser } = parserModule as { IscpCommandParser: new (...deps: any) => any };
+
+  const h = makeParserHarness();
+  const parser = new IscpCommandParser(h.getEntityId, h.stateReader, h.deezerStoreApi, h.tidalStoreApi, h.tuneInStoreApi);
+
+  const plus14 = parser.parse("CTL", "+0E");
+  expect(plus14?.command).toBe("center-temporary-level");
+  expect(plus14?.argument).toBe(7);
+
+  const minus = parser.parse("CTL", "-0C");
+  expect(minus?.command).toBe("center-temporary-level");
+  expect(minus?.argument).toBe(-6);
+
+  const half = parser.parse("CTL", "-01");
+  expect(half?.command).toBe("center-temporary-level");
+  expect(half?.argument).toBe(-0.5);
+
+  const zero = parser.parse("CTL", "00");
+  expect(zero?.command).toBe("center-temporary-level");
+  expect(zero?.argument).toBe(0);
+});
+
+it("IscpCommandParser decodes SWL subwoofer-temporary-level responses in 0.5 dB steps", async () => {
+  const parserModule = await import("../src/eiscp-command-parser.js");
+  const { IscpCommandParser } = parserModule as { IscpCommandParser: new (...deps: any) => any };
+
+  const h = makeParserHarness();
+  const parser = new IscpCommandParser(h.getEntityId, h.stateReader, h.deezerStoreApi, h.tidalStoreApi, h.tuneInStoreApi);
+
+  const minusHalf = parser.parse("SWL", "-01");
+  expect(minusHalf?.command).toBe("subwoofer-temporary-level");
+  expect(minusHalf?.argument).toBe(-0.5);
+
+  const plus = parser.parse("SWL", "+0C");
+  expect(plus?.command).toBe("subwoofer-temporary-level");
+  expect(plus?.argument).toBe(6);
+
+  const minusF = parser.parse("SWL", "-0F");
+  expect(minusF?.argument).toBe(-7.5);
+
+  const zero = parser.parse("SWL", "00");
+  expect(zero?.argument).toBe(0);
+});

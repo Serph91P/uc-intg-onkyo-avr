@@ -232,7 +232,12 @@ export default class EntityRegistrar {
       { suffix: "_video_output_sensor", label: "Video Output", initialValue: "", options: {} },
       { suffix: "_output_display_sensor", label: "Output Display", initialValue: "", options: {} },
       { suffix: "_front_panel_display_sensor", label: "Front Panel Display", initialValue: "", options: {} },
-      { suffix: "_mute_sensor", label: "Mute", initialValue: "", options: {} }
+      { suffix: "_mute_sensor", label: "Mute", initialValue: "", options: {} },
+      { suffix: "_treble_sensor", label: "Treble", initialValue: "", options: {} },
+      { suffix: "_bass_sensor", label: "Bass", initialValue: "", options: {} },
+      { suffix: "_vocal_sensor", label: "Vocal", initialValue: "", options: {} },
+      { suffix: "_center_sensor", label: "Center", initialValue: "", options: {} },
+      { suffix: "_subwoofer_sensor", label: "Subwoofer", initialValue: "", options: {} }
     ];
 
     for (const def of SENSOR_DEFS) {

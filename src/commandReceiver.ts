@@ -309,6 +309,52 @@ export class CommandReceiver {
     }
   }
 
+  private async handleToneFront(avrUpdates: AvrUpdateEvent, entityId: string): Promise<void> {
+    const arg = avrUpdates.argument as Record<string, string | number> | undefined;
+    const bass = arg?.bass;
+    const treble = arg?.treble;
+    if (bass !== undefined && bass !== null) {
+      this.driver.updateEntityAttributes(`${entityId}_bass_sensor`, {
+        [uc.SensorAttributes.State]: uc.SensorStates.On,
+        [uc.SensorAttributes.Value]: String(bass)
+      });
+    }
+    if (treble !== undefined && treble !== null) {
+      this.driver.updateEntityAttributes(`${entityId}_treble_sensor`, {
+        [uc.SensorAttributes.State]: uc.SensorStates.On,
+        [uc.SensorAttributes.Value]: String(treble)
+      });
+    }
+    log.info("%s [%s] tone-front bass=%s treble=%s", integrationName, entityId, bass, treble);
+  }
+
+  private async handleVocal(avrUpdates: AvrUpdateEvent, entityId: string): Promise<void> {
+    const level = Number(avrUpdates.argument);
+    log.info("%s [%s] vocal set to: %s", integrationName, entityId, level);
+    this.driver.updateEntityAttributes(`${entityId}_vocal_sensor`, {
+      [uc.SensorAttributes.State]: uc.SensorStates.On,
+      [uc.SensorAttributes.Value]: Number.isNaN(level) ? String(avrUpdates.argument) : String(level)
+    });
+  }
+
+  private async handleCenterLevel(avrUpdates: AvrUpdateEvent, entityId: string): Promise<void> {
+    const level = Number(avrUpdates.argument);
+    log.info("%s [%s] center-temporary-level set to: %s", integrationName, entityId, level);
+    this.driver.updateEntityAttributes(`${entityId}_center_sensor`, {
+      [uc.SensorAttributes.State]: uc.SensorStates.On,
+      [uc.SensorAttributes.Value]: Number.isNaN(level) ? String(avrUpdates.argument) : `${level.toFixed(1)} dB`
+    });
+  }
+
+  private async handleSubwooferLevel(avrUpdates: AvrUpdateEvent, entityId: string): Promise<void> {
+    const level = Number(avrUpdates.argument);
+    log.info("%s [%s] subwoofer-temporary-level set to: %s", integrationName, entityId, level);
+    this.driver.updateEntityAttributes(`${entityId}_subwoofer_sensor`, {
+      [uc.SensorAttributes.State]: uc.SensorStates.On,
+      [uc.SensorAttributes.Value]: Number.isNaN(level) ? String(avrUpdates.argument) : `${level.toFixed(1)} dB`
+    });
+  }
+
   private readonly eventHandlers: Record<string, (avrUpdates: AvrUpdateEvent, entityId: string, eventZone: string) => Promise<void>> = {
     "system-power": (u, e) => this.handleSystemPower(u, e),
     "audio-muting": (u, e) => this.handleAudioMuting(u, e),
@@ -317,7 +363,11 @@ export class CommandReceiver {
     "input-selector": (u, e, z) => this.handleInputSelector(u, e, z),
     "listening-mode": (u, e, z) => this.handleListeningMode(u, e, z),
     dirac: (u, e) => this.handleDirac(u, e),
-    IFV: (u, e) => this.handleIFV(u, e)
+    IFV: (u, e) => this.handleIFV(u, e),
+    "tone-front": (u, e) => this.handleToneFront(u, e),
+    vocal: (u, e) => this.handleVocal(u, e),
+    "center-temporary-level": (u, e) => this.handleCenterLevel(u, e),
+    "subwoofer-temporary-level": (u, e) => this.handleSubwooferLevel(u, e)
   };
 
   setupEiscpListener() {

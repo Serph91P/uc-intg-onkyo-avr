@@ -316,6 +316,12 @@ export class AvrStateManager {
     await eiscpInstance.command({ zone, command: "listening-mode", args: "query" });
     await eiscpInstance.command({ zone, command: "fp-display", args: "query" });
 
+    // Tone / vocal / speaker-level sensors (bass+treble returned by tone-front; center and subwoofer are temp levels)
+    await eiscpInstance.command({ zone, command: "tone-front", args: "query" });
+    await eiscpInstance.command({ zone, command: "vocal", args: "query" });
+    await eiscpInstance.command({ zone, command: "center-temporary-level", args: "query" });
+    await eiscpInstance.command({ zone, command: "subwoofer-temporary-level", args: "query" });
+
     // Force refresh album art for network services that support it
     const currentSource = this.getSource(entityId);
     const currentSubSource = this.getSubSource(entityId);

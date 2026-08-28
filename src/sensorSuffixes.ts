@@ -9,7 +9,12 @@ export const SENSOR_SUFFIXES = [
   "_video_input_sensor",
   "_video_output_sensor",
   "_output_display_sensor",
-  "_front_panel_display_sensor"
+  "_front_panel_display_sensor",
+  "_treble_sensor",
+  "_bass_sensor",
+  "_vocal_sensor",
+  "_center_sensor",
+  "_subwoofer_sensor"
 ] as const;
 
 export const SELECT_SUFFIXES = {
