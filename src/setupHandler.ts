@@ -146,6 +146,7 @@ export default class SetupHandler {
       input.albumArtURL ||
       input.listeningModeOptions ||
       input.inputSelectorOptions ||
+      input.createDiracSelectEntity ||
       input.volumeScale ||
       input.volumeDisplay ||
       input.adjustVolumeDispl ||
@@ -179,6 +180,7 @@ export default class SetupHandler {
         zoneCount: currentAvr && cfg.avrs ? cfg.avrs.filter((a) => a.model === currentAvr.model && a.ip === currentAvr.ip).length : 1,
         createSensors: currentAvr?.createSensors,
         createRemoteEntity: currentAvr?.createRemoteEntity,
+        createDiracSelectEntity: currentAvr?.createDiracSelectEntity,
         netMenuDelay: currentAvr?.netMenuDelay,
         tuneinPresetPosition: currentAvr?.tuneinPresetPosition,
         tuneinMenuStyle: currentAvr?.tuneinMenuStyle,

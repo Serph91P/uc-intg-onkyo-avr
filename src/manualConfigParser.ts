@@ -15,6 +15,7 @@ export interface ManualConfigInput {
   zoneCount?: unknown;
   createSensors?: unknown;
   createRemoteEntity?: unknown;
+  createDiracSelectEntity?: unknown;
   netMenuDelay?: unknown;
   tuneinPresetPosition?: unknown;
   tuneinMenuStyle?: unknown;
@@ -37,6 +38,7 @@ export interface ParsedManualConfig {
   zoneCountValue: number;
   createSensorsValue: boolean;
   createRemoteEntityValue: boolean;
+  createDiracSelectEntityValue: boolean;
   netMenuDelayValue: number;
   tuneinPresetPositionValue: number;
   tuneinMenuStyleValue: "mypresets" | "full";
@@ -60,6 +62,7 @@ export class ManualConfigParser {
       entityNameStyleValue: this.parseEntityNameStyle(input.entityNameStyle),
       createSensorsValue: parseBoolean(input.createSensors, AVR_DEFAULTS.createSensors),
       createRemoteEntityValue: parseBoolean(input.createRemoteEntity, AVR_DEFAULTS.createRemoteEntity),
+      createDiracSelectEntityValue: parseBoolean(input.createDiracSelectEntity, AVR_DEFAULTS.createDiracSelectEntity),
       netMenuDelayValue: this.parseNetMenuDelay(input.netMenuDelay),
       tuneinPresetPositionValue: this.parseTuneInPresetPosition(input.tuneinPresetPosition),
       tuneinMenuStyleValue: this.parseTuneInMenuStyle(input.tuneinMenuStyle),

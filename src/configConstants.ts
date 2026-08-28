@@ -91,6 +91,7 @@ export const AVR_DEFAULTS = {
   entityNameStyle: "short",
   createSensors: true,
   createRemoteEntity: true,
+  createDiracSelectEntity: true,
   netMenuDelay: 500,
   tuneinPresetPosition: 1,
   tuneinMenuStyle: "mypresets",
@@ -115,6 +116,7 @@ export interface AvrConfig {
   entityNameStyle?: EntityNameStyle; // long = include host/ip in visible names, short = omit host/ip
   createSensors?: boolean; // true = create sensor entities for this AVR
   createRemoteEntity?: boolean; // true = create a remote entity for this AVR
+  createDiracSelectEntity?: boolean; // true (default) = create the Dirac select entity (fixed options)
   netMenuDelay?: number; // delay in ms for NET menu to load (default 2500)
   tuneinPresetPosition?: number; // position of "My Presets" in TuneIn menu (1-9, default 1)
   tuneinMenuStyle?: TuneInMenuStyle; // choose TuneIn navigation mode: mypresets or full
@@ -156,6 +158,7 @@ export interface NormalizedAvrConfig {
   entityNameStyle: EntityNameStyle;
   createSensors: boolean;
   createRemoteEntity: boolean;
+  createDiracSelectEntity: boolean;
   netMenuDelay: number;
   tuneinPresetPosition: number;
   tuneinMenuStyle: TuneInMenuStyle;
@@ -188,6 +191,8 @@ export function normalizeAvrConfig(raw: AvrConfig): NormalizedAvrConfig {
 
   const createRemoteEntity = parseBoolean(raw.createRemoteEntity, AVR_DEFAULTS.createRemoteEntity);
 
+  const createDiracSelectEntity = parseBoolean(raw.createDiracSelectEntity, AVR_DEFAULTS.createDiracSelectEntity);
+
   const netMenuDelay = (() => {
     const v = typeof raw.netMenuDelay === "number" ? raw.netMenuDelay : parseInt(String(raw.netMenuDelay ?? ""), 10);
     return isNaN(v) || v < 0 ? AVR_DEFAULTS.netMenuDelay : v;
@@ -219,6 +224,7 @@ export function normalizeAvrConfig(raw: AvrConfig): NormalizedAvrConfig {
     entityNameStyle,
     createSensors,
     createRemoteEntity,
+    createDiracSelectEntity,
     netMenuDelay,
     tuneinPresetPosition,
     tuneinMenuStyle,

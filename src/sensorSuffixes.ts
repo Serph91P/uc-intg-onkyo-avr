@@ -12,10 +12,14 @@ export const SENSOR_SUFFIXES = [
   "_front_panel_display_sensor"
 ] as const;
 
-export const SELECT_SUFFIXES = ["_listening_mode", "_input_selector"] as const;
+export const SELECT_SUFFIXES = {
+  listeningMode: "_listening_mode",
+  inputSelector: "_input_selector",
+  dirac: "_dirac"
+} as const;
 
 /** Suffix used for the optional remote entity. */
 export const REMOTE_SUFFIX = "_remote";
 
 /** All sensor/select suffixes (for use in regex construction, etc.) */
-export const ALL_SUFFIXES = [...SENSOR_SUFFIXES, ...SELECT_SUFFIXES, REMOTE_SUFFIX] as readonly string[];
+export const ALL_SUFFIXES = [...SENSOR_SUFFIXES, ...Object.values(SELECT_SUFFIXES), REMOTE_SUFFIX] as readonly string[];

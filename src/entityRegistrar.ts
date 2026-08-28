@@ -33,6 +33,7 @@ import { listDeezerMenuOptions, resetDeezerBrowseState, getDeezerBrowseState } f
 import { listMusicServerMenuOptions, resetMusicServerBrowseState, getMusicServerBrowseState, waitForNlaIngestion } from "./musicServerBrowserStore.js";
 import { TuneInBrowseHandler } from "./tuneInBrowseHandler.js";
 import { SELECT_SUFFIXES } from "./sensorSuffixes.js";
+import { DIRAC_OPTION_LABELS } from "./diracSelect.js";
 import { createRemoteEntity as buildRemoteEntity } from "./remoteEntity.js";
 import type { AvrStateApi } from "./types.js";
 
@@ -258,12 +259,12 @@ export default class EntityRegistrar {
     const options = this.getListeningModeOptions(undefined, avrEntry);
     const displayBaseName = this.getDisplayBaseName(avrEntry);
     const selectEntity = new Select(
-      `${avrEntry}${SELECT_SUFFIXES[0]}`,
+      `${avrEntry}${SELECT_SUFFIXES.listeningMode}`,
       { en: `${displayBaseName} Listening Mode` },
       {
         attributes: {
           state: SelectStates.On,
-          current_option: "nee",
+          current_option: "",
           options: options
         }
       }
@@ -300,7 +301,7 @@ export default class EntityRegistrar {
     const options = this.getInputSelectorOptions(avrEntry);
     const displayBaseName = this.getDisplayBaseName(avrEntry);
     const selectEntity = new Select(
-      `${avrEntry}${SELECT_SUFFIXES[1]}`,
+      `${avrEntry}${SELECT_SUFFIXES.inputSelector}`,
       { en: `${displayBaseName} Input Selector` },
       {
         attributes: {
@@ -317,5 +318,23 @@ export default class EntityRegistrar {
   // Remote entity — optional (createRemoteEntity config)
   createRemoteEntity(avrEntry: string, cmdHandler?: CmdHandlerFn): uc.Remote {
     return buildRemoteEntity(avrEntry, this.getDisplayBaseName(avrEntry), cmdHandler);
+  }
+
+  // Dirac select entity — optional (createDiracSelectEntity config). Options are fixed, see diracSelect.ts.
+  createDiracSelectEntity(avrEntry: string, cmdHandler?: (entity: uc.Entity, cmdId: string, params?: { [key: string]: string | number | boolean }) => Promise<uc.StatusCodes>): Select {
+    const displayBaseName = this.getDisplayBaseName(avrEntry);
+    const selectEntity = new Select(
+      `${avrEntry}${SELECT_SUFFIXES.dirac}`,
+      { en: `${displayBaseName} Dirac` },
+      {
+        attributes: {
+          state: SelectStates.On,
+          current_option: "",
+          options: [...DIRAC_OPTION_LABELS]
+        }
+      }
+    );
+    if (cmdHandler) selectEntity.setCmdHandler(cmdHandler);
+    return selectEntity;
   }
 }

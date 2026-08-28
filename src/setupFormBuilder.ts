@@ -22,6 +22,20 @@ export class SetupFormBuilder {
         field: { text: { value: values.inputSelectorOptions } },
         description: { en: "Optional — semicolon-separated list (e.g. dvd; bd; net; bluetooth). Leave empty to show all inputs, enter 'none' to hide this entity." }
       },
+      {
+        id: "createDiracSelectEntity",
+        label: { en: "Create Dirac select entity?" },
+        field: {
+          dropdown: {
+            value: String(values.createDiracSelectEntityValue),
+            items: [
+              { id: "true", label: { en: "Yes (default)" } },
+              { id: "false", label: { en: "No" } }
+            ]
+          }
+        },
+        description: { en: "Creates a select entity with fixed options Off, Slot 1, Slot 2, Slot 3 to switch Dirac room correction." }
+      },
       { id: "queueThreshold", label: { en: "Message queue threshold. Default `100`" }, field: { number: { value: values.queueThresholdValue } } },
       { id: "netMenuDelay", label: { en: "NET sub-source selection delay. Default `500`" }, field: { number: { value: values.netMenuDelayValue } } },
       {

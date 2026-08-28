@@ -1,5 +1,6 @@
 import { eiscpCommands } from "./eiscp-commands.js";
 import { eiscpMappings } from "./eiscp-mappings.js";
+import { diracResponseToCommandValue } from "./diracSelect.js";
 import { NO_TITLE } from "./constants.js";
 import { detectServiceFromText, detectServiceFromAsciiPrefix, getCanonicalServiceName } from "./serviceDetector.js";
 import type { DeezerBrowseState } from "./deezerBrowserStore.js";
@@ -112,6 +113,11 @@ export class IscpCommandParser {
 
     // Delegate to special handler if one exists
     const upperCommand = command.toUpperCase();
+
+    // Normalize DSS query responses before the generic command-table lookup. The AVR
+    // reports Dirac state as "100"/"200"/"300"/"400" but the command values are C00-C03.
+    const lookupValue = upperCommand === "DSS" ? diracResponseToCommandValue(value) : value;
+
     const handler = this.commandHandlers[upperCommand];
     if (handler) {
       const handled = handler(value, command, result);
@@ -140,9 +146,9 @@ export class IscpCommandParser {
     result.command = cmdObj.name;
     const valuesObj = cmdObj.values;
 
-    if (valuesObj[value]?.name !== undefined) {
-      result.argument = valuesObj[value].name;
-    } else if (value === "N/A") {
+    if (valuesObj[lookupValue]?.name !== undefined) {
+      result.argument = valuesObj[lookupValue].name;
+    } else if (lookupValue === "N/A") {
       // Skip N/A values (zone is off or unavailable)
     } else if (
       VALUE_MAPPINGS.hasOwnProperty(lookupCommand as keyof typeof VALUE_MAPPINGS) &&

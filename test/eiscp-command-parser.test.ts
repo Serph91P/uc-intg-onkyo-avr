@@ -321,3 +321,27 @@ it("IscpCommandParser decodes VOC responses as numeric vocal levels", async () =
   expect(level0?.command).toBe("vocal");
   expect(level0?.argument).toBe(0);
 });
+
+it("IscpCommandParser maps DSS query responses (100/200/300/400) to dirac slot keys", async () => {
+  const parserModule = await import("../src/eiscp-command-parser.js");
+  const { IscpCommandParser } = parserModule as { IscpCommandParser: new (...deps: any) => any };
+
+  const h = makeParserHarness();
+  const parser = new IscpCommandParser(h.getEntityId, h.stateReader, h.deezerStoreApi, h.tidalStoreApi, h.tuneInStoreApi);
+
+  const off = parser.parse("DSS", "100");
+  expect(off?.command).toBe("dirac");
+  expect(off?.argument).toBe("off");
+
+  const slot1 = parser.parse("DSS", "200");
+  expect(slot1?.argument).toBe("slot1");
+
+  const slot2 = parser.parse("DSS", "300");
+  expect(slot2?.argument).toBe("slot2");
+
+  const slot3 = parser.parse("DSS", "400");
+  expect(slot3?.argument).toBe("slot3");
+
+  const query = parser.parse("DSS", "QSTN");
+  expect(query?.argument).toBe("query");
+});

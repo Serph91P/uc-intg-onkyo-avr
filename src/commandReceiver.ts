@@ -8,6 +8,7 @@ import { eiscpMappings } from "./eiscp-mappings.js";
 import log, { getLogLevel } from "./loggers.js";
 import { ZoneAgnosticUpdateProcessor } from "./zoneAgnosticUpdateProcessor.js";
 import { SENSOR_SUFFIXES } from "./sensorSuffixes.js";
+import { diracServiceKeyToOption } from "./diracSelect.js";
 import { AV_INFO_REQUERY_DELAY } from "./constants.js";
 import type { AvrStateApi } from "./types.js";
 
@@ -271,6 +272,18 @@ export class CommandReceiver {
     });
   }
 
+  private async handleDirac(avrUpdates: AvrUpdateEvent, entityId: string): Promise<void> {
+    const diracSlot = diracServiceKeyToOption(avrUpdates.argument.toString());
+    if (diracSlot === "undefined" || diracSlot === "unknown" || diracSlot === "query") {
+      log.info("%s [%s] dirac '%s', keeping current value (no update)", integrationName, entityId, diracSlot);
+      return;
+    }
+    log.info("%s [%s] dirac set to: %s", integrationName, entityId, diracSlot);
+    this.driver.updateEntityAttributes(`${entityId}_dirac`, {
+      [SelectAttributes.CurrentOption]: diracSlot
+    });
+  }
+
   private async handleIFV(avrUpdates: AvrUpdateEvent, entityId: string): Promise<void> {
     const arg = avrUpdates.argument as Record<string, string> | undefined;
     const videoInputValue = arg?.videoInputValue ?? "";
@@ -303,6 +316,7 @@ export class CommandReceiver {
     preset: (u, e) => this.handlePreset(u, e),
     "input-selector": (u, e, z) => this.handleInputSelector(u, e, z),
     "listening-mode": (u, e, z) => this.handleListeningMode(u, e, z),
+    dirac: (u, e) => this.handleDirac(u, e),
     IFV: (u, e) => this.handleIFV(u, e)
   };
 
