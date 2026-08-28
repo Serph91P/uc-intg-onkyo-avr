@@ -10,32 +10,6 @@ export class SetupFormBuilder {
       { id: "ipAddress", label: { en: "AVR IP Address (for example `192.168.1.100`)" }, field: { text: { value: values.ipVal } } },
       { id: "port", label: { en: "AVR Port (default `60128`)" }, field: { number: { value: values.portNum } } },
       { id: "albumArtURL", label: { en: "AVR AlbumArt endpoint. Default `album_art.cgi`, if not known set to `na`." }, field: { text: { value: values.albumArtURLValue } } },
-      {
-        id: "listeningModeOptions",
-        label: { en: "Listening mode select options (semicolon-separated, 'none' to disable, empty shows all)" },
-        field: { text: { value: values.listeningModeOptions } },
-        description: { en: "Optional — semicolon-separated list (e.g. stereo; straight-decode; neural-thx). Leave empty for dynamic options, enter 'none' to hide this entity." }
-      },
-      {
-        id: "inputSelectorOptions",
-        label: { en: "Input selector options (semicolon-separated, 'none' to disable, empty shows all)" },
-        field: { text: { value: values.inputSelectorOptions } },
-        description: { en: "Optional — semicolon-separated list (e.g. dvd; bd; net; bluetooth). Leave empty to show all inputs, enter 'none' to hide this entity." }
-      },
-      {
-        id: "createDiracSelectEntity",
-        label: { en: "Create Dirac select entity?" },
-        field: {
-          dropdown: {
-            value: String(values.createDiracSelectEntityValue),
-            items: [
-              { id: "true", label: { en: "Yes (default)" } },
-              { id: "false", label: { en: "No" } }
-            ]
-          }
-        },
-        description: { en: "Creates a select entity with fixed options Off, Slot 1, Slot 2, Slot 3 to switch Dirac room correction." }
-      },
       { id: "queueThreshold", label: { en: "Message queue threshold. Default `100`" }, field: { number: { value: values.queueThresholdValue } } },
       { id: "netMenuDelay", label: { en: "NET sub-source selection delay. Default `500`" }, field: { number: { value: values.netMenuDelayValue } } },
       {
@@ -151,6 +125,32 @@ export class SetupFormBuilder {
           }
         },
         description: { en: "Creates a remote entity with physical button mapping and a command page to send AVR commands, e.g. power, volume, mute, navigation, input and sleep timers." }
+      },
+      {
+        id: "createDiracSelectEntity",
+        label: { en: "Create Dirac select entity?" },
+        field: {
+          dropdown: {
+            value: String(values.createDiracSelectEntityValue),
+            items: [
+              { id: "true", label: { en: "Yes (default)" } },
+              { id: "false", label: { en: "No" } }
+            ]
+          }
+        },
+        description: { en: "Creates a select entity with fixed options Off, Slot 1, Slot 2, Slot 3 to switch Dirac room correction." }
+      },
+      {
+        id: "listeningModeOptions",
+        label: { en: "Listening mode select options (semicolon-separated, 'none' to disable, empty shows all)" },
+        field: { text: { value: values.listeningModeOptions } },
+        description: { en: "Optional — semicolon-separated list (e.g. stereo; straight-decode; neural-thx). Leave empty for dynamic options, enter 'none' to hide this entity." }
+      },
+      {
+        id: "inputSelectorOptions",
+        label: { en: "Input selector options (semicolon-separated, 'none' to disable, empty shows all)" },
+        field: { text: { value: values.inputSelectorOptions } },
+        description: { en: "Optional — semicolon-separated list (e.g. dvd; bd; net; bluetooth). Leave empty to show all inputs, enter 'none' to hide this entity." }
       },
       {
         id: "logLevel",
