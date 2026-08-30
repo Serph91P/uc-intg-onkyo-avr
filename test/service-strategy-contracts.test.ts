@@ -113,6 +113,60 @@ it("TuneIn adapter contract ingests NLS only for active TuneIn zones", async () 
   expect(listTuneInMenuOptions(controlZone).length).toBe(0);
 });
 
+it("TuneIn adapter contract clears stale now-playing marks on fresh entry (even when enteringZones is empty)", async () => {
+  const adaptersModule = await import("../src/zoneAgnosticServiceAdapters.js");
+  const tuneInMenuStoreModule = await import("../src/tuneInMenuStore.js");
+  const tuneInBrowserStoreModule = await import("../src/tuneInBrowserStore.js");
+
+  const { TuneInZoneAgnosticAdapter } = adaptersModule as { TuneInZoneAgnosticAdapter: new (deps: any) => any };
+  const { addTuneInMenuOption, getTuneInMenuBrowseState, setTuneInMenuNowPlayingStation } = tuneInMenuStoreModule as {
+    addTuneInMenuOption: (entityId: string, menuIndex: number, title: string, isBrowsable: boolean) => void;
+    getTuneInMenuBrowseState: (entityId: string) => { nowPlayingTitle: string } | null;
+    setTuneInMenuNowPlayingStation: (entityId: string, station: string) => void;
+  };
+  const { addTuneInPreset, getTuneInBrowseState, updateNowPlayingStation } = tuneInBrowserStoreModule as {
+    addTuneInPreset: (entityId: string, title: string, stationKey: string, rawLabel: string, resolver: () => string) => void;
+    getTuneInBrowseState: (entityId: string) => { nowPlayingStation: string } | null;
+    updateNowPlayingStation: (entityId: string, candidate: string) => void;
+  };
+
+  const activeZone = "TX-CONTRACT 10.0.0.95 main";
+  const physicalAvrId = "TX-CONTRACT 10.0.0.95";
+
+  // Simulate yesterday's station still marked as now playing in both the preset and menu stores.
+  addTuneInPreset(activeZone, "Radio 1", "radio1", "Radio 1", (): string => "");
+  updateNowPlayingStation(activeZone, "Radio 1");
+  addTuneInMenuOption(activeZone, 1, "Radio 1", false);
+  setTuneInMenuNowPlayingStation(activeZone, "Radio 1");
+
+  expect(getTuneInBrowseState(activeZone)?.nowPlayingStation).toBe("Radio 1");
+  expect(getTuneInMenuBrowseState(activeZone)?.nowPlayingTitle).toBe("Radio 1");
+
+  const state = {
+    getSubSource: (_entityId: string) => "tunein",
+    getEntitiesByPhysicalAvrAndSource: (avr: string, source: string) => {
+      if (source !== "net" || avr !== physicalAvrId) {
+        return [];
+      }
+      return [activeZone];
+    }
+  };
+
+  const adapter = new TuneInZoneAgnosticAdapter({
+    state,
+    getPhysicalAvrId: (entityId: string) => (entityId === activeZone ? physicalAvrId : "other"),
+    isTuneInFullMenu: async () => true,
+    preloadTuneInPresets: async () => undefined
+  });
+
+  // enteringZones is empty because the internal sub-source already reports tunein (e.g. after standby
+  // / re-selecting the same source). The fresh entry must still drop the stale marks.
+  await adapter.onServiceEntered(activeZone, [activeZone], []);
+
+  expect(getTuneInBrowseState(activeZone)?.nowPlayingStation).toBe("");
+  expect(getTuneInMenuBrowseState(activeZone)?.nowPlayingTitle).toBe("");
+});
+
 it("Tidal adapter contract ingests NLA and metadata for active zones", async () => {
   const adaptersModule = await import("../src/zoneAgnosticServiceAdapters.js");
   const tidalStoreModule = await import("../src/tidalBrowserStore.js");

@@ -165,6 +165,13 @@ export class AvrStateManager {
       log.info("%s [%s] source changed from '%s' to '%s'", integrationName, entityId, state.source, source);
       state.source = normalizedSource;
       state.playbackStatus = "unknown";
+      // A network sub-source (e.g. "tunein") is only meaningful while the zone is on the NET input.
+      // Leaving NET (DAB, FM, CD, ...) leaves a stale sub-source behind, which would suppress the
+      // NLT service-entry event on re-entry. Reset it so any later entry into a network service is
+      // detected as a real change and stale "now playing" markers get dropped.
+      if (normalizedSource !== "net") {
+        state.subSource = "unknown";
+      }
       this.applyMediaPlayerState(entityId, _driver);
       this.refreshAvrState(entityId, eiscpInstance, zone, _driver);
       return true;

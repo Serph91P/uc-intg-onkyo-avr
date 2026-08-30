@@ -191,6 +191,9 @@ export class CommandReceiver {
           [uc.SensorAttributes.Value]: "no data"
         });
       }
+      // AVR is no longer playing anything; drop stale TuneIn "now playing" marks so re-entering
+      // TuneIn later starts with a clean media browser.
+      this.zoneAgnosticProcessor.clearTuneInBrowseMarkers(entityId);
     }
   }
 
