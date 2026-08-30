@@ -100,19 +100,6 @@ export class SetupFormBuilder {
         }
       },
       {
-        id: "createSensors",
-        label: { en: "Create sensor entities?" },
-        field: {
-          dropdown: {
-            value: String(values.createSensorsValue),
-            items: [
-              { id: "true", label: { en: "Yes (default)" } },
-              { id: "false", label: { en: "No" } }
-            ]
-          }
-        }
-      },
-      {
         id: "createRemoteEntity",
         label: { en: "Create remote entity?" },
         field: {
@@ -125,6 +112,19 @@ export class SetupFormBuilder {
           }
         },
         description: { en: "Creates a remote entity with physical button mapping and a command page to send AVR commands, e.g. power, volume, mute, navigation, input and sleep timers." }
+      },
+      {
+        id: "createSensors",
+        label: { en: "Create sensor entities?" },
+        field: {
+          dropdown: {
+            value: String(values.createSensorsValue),
+            items: [
+              { id: "true", label: { en: "Yes (default)" } },
+              { id: "false", label: { en: "No" } }
+            ]
+          }
+        }
       },
       {
         id: "createDiracSelectEntity",
@@ -142,7 +142,7 @@ export class SetupFormBuilder {
       },
       {
         id: "listeningModeOptions",
-        label: { en: "Listening mode options (semicolon-separated), 'all' shows all, 'none' to disable)" },
+        label: { en: "Listening mode options (semicolon-separated, 'all' shows all, 'none' to disable)" },
         field: { text: { value: values.listeningModeOptions } },
         description: { en: "Optional — semicolon-separated list (e.g. stereo; straight-decode; neural-thx). Enter 'all' for dynamic options, enter 'none' to hide this entity." }
       },
