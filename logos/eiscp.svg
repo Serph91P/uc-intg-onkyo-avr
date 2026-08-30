@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 90" width="90" height="90">
+  <!-- fa-solid fa-rectangle-ad style outlined badge with eISCP lettering -->
+  <rect x="9" y="9" width="72" height="72" rx="16" fill="none" stroke="#1a6fd1" stroke-width="3.5"/>
+  <text x="45" y="55" font-family="Helvetica, Arial, sans-serif" font-size="22"
+        font-weight="bold" text-anchor="middle" fill="#1a6fd1">eISCP</text>
+</svg>

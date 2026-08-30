@@ -2,8 +2,8 @@
   "driver_id": "onkyo_avr_custom_driver",
   "version": "0.9.3",
   "min_core_api": "0.20.0",
-  "name": { "en": "Onkyo/Pioneer/Integra AVR" },
-  "icon": "uc:music",
+  "name": { "en": "Onkyo/Pioneer/Integra AVR (eISCP)" },
+  "icon": "custom:eiscp.png",
   "description": { "en": "Custom integration for Unfolded Circle remotes to control your Onkyo / Pioneer / Integra AVR using the eISCP protocol." },
   "developer": {
     "name": "Ed Nootebos",

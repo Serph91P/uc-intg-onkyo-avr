@@ -102,6 +102,10 @@ jobs:
           mv node_modules artifacts/bin/
           cp driver.json artifacts/
 
+          # Copy the custom driver pictogram to the archive root so the
+          # "custom:eiscp.png" icon referenced in driver.json is resolvable.
+          cp eiscp.png artifacts/
+
           # Include runtime logo assets used by generated media thumbnails.
           # Copy them both next to the package root and next to the runtime bin
           # so the integration can resolve them in either installation layout.
