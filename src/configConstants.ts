@@ -23,13 +23,21 @@ export const PATTERNS = {
   RAW_COMMAND: /^[A-Z0-9]+$/ // Uppercase letters and numbers only
 } as const;
 
-// Parse a select-entity options field: null = 'none' (don't create entity), [] = blank (use defaults), else trimmed non-empty items.
-export function parseSelectOptions(raw: unknown): string[] | null {
+// Sentinel for "show all known options". Stored in config when the user leaves the field empty or enters 'all'.
+export const ALL_OPTIONS = "all";
+
+// Parsed value of a select-entity options field: "all" = show all, null = 'none' (don't create entity), else trimmed non-empty items.
+export type SelectOptions = string[] | "all" | null;
+
+// Parse a select-entity options field: 'all'/empty/undefined = show all, 'none' = don't create entity, else trimmed non-empty items.
+export function parseSelectOptions(raw: unknown): SelectOptions {
   if (raw === null) return null;
-  if (raw === undefined || raw === "") return [];
+  if (raw === undefined || raw === "") return ALL_OPTIONS;
   if (typeof raw === "string") {
     const trimmed = raw.trim();
-    if (trimmed.toLowerCase() === "none") return null;
+    const lower = trimmed.toLowerCase();
+    if (lower === "none") return null;
+    if (lower === "all") return ALL_OPTIONS;
     return trimmed
       .split(/[;,]/)
       .map((s) => s.trim())
@@ -37,9 +45,12 @@ export function parseSelectOptions(raw: unknown): string[] | null {
   }
   if (Array.isArray(raw)) {
     const arr = (raw as unknown[]).map((s) => String(s).trim()).filter(Boolean);
+    if (arr.length === 0) return ALL_OPTIONS;
     if (arr.length === 1 && arr[0].toLowerCase() === "none") return null;
+    if (arr.length === 1 && arr[0].toLowerCase() === "all") return ALL_OPTIONS;
     return arr;
   }
+  // Unknown type: return empty (treated as "all" by consumers) so callers can distinguish and validate the bad input.
   return [];
 }
 
@@ -120,10 +131,10 @@ export interface AvrConfig {
   netMenuDelay?: number; // delay in ms for NET menu to load (default 2500)
   tuneinPresetPosition?: number; // position of "My Presets" in TuneIn menu (1-9, default 1)
   tuneinMenuStyle?: TuneInMenuStyle; // choose TuneIn navigation mode: mypresets or full
-  // undefined/[] = all options, non-empty = exact options, null = don't create entity.
-  listeningModeOptions?: string[] | null;
-  // undefined/[] = all inputs, non-empty = exact options, null = don't create entity.
-  inputSelectorOptions?: string[] | null;
+  // undefined = all options, non-empty = exact options, null = don't create entity. Empty input is normalized to "all".
+  listeningModeOptions?: SelectOptions;
+  // undefined = all inputs, non-empty = exact options, null = don't create entity. Empty input is normalized to "all".
+  inputSelectorOptions?: SelectOptions;
 }
 
 export interface OnkyoConfig {
@@ -162,8 +173,8 @@ export interface NormalizedAvrConfig {
   netMenuDelay: number;
   tuneinPresetPosition: number;
   tuneinMenuStyle: TuneInMenuStyle;
-  listeningModeOptions: string[] | null | undefined;
-  inputSelectorOptions: string[] | null | undefined;
+  listeningModeOptions: SelectOptions | undefined;
+  inputSelectorOptions: SelectOptions | undefined;
 }
 
 // Coerce and apply defaults to a raw AvrConfig. OCP: adding a field only requires touching this function and AvrConfig/NormalizedAvrConfig.

@@ -337,3 +337,41 @@ it("handleManualConfiguration: autodiscovery should persist listeningModeOptions
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+// Leaving the options fields empty should store the explicit "all" sentinel.
+it("handleManualConfiguration: autodiscovery persists 'all' when options fields are left empty", async () => {
+  const tmp = mkTmpDir();
+  try {
+    const configModule = await import("../src/configManager.js");
+    const SetupHandlerModule = await import("../src/setupHandler.js");
+    const EiscpModule = await import("../src/eiscp.js");
+
+    const ConfigManager = configModule.ConfigManager;
+    if (typeof configModule.setConfigDir === "function") configModule.setConfigDir(tmp);
+
+    const originalDiscover = EiscpModule.default.prototype.discover;
+    EiscpModule.default.prototype.discover = async () => [{ model: "TX-RZ50", host: "192.168.2.103", port: 60128 }];
+
+    const host: any = {
+      driver: {},
+      getConfigDirPath: () => tmp,
+      onConfigSaved: async () => {},
+      onConfigCleared: async () => {},
+      log: console
+    };
+
+    const setup = new SetupHandlerModule.default(host);
+
+    const res = await (setup as any).handleManualConfiguration({ model: "", ipAddress: "", listeningModeOptions: "", inputSelectorOptions: "all" });
+    expect(res).toBeInstanceOf(uc.SetupComplete);
+
+    const reloaded = ConfigManager.load();
+    expect(reloaded.avrs![0].listeningModeOptions).toEqual("all");
+    expect(reloaded.avrs![0].inputSelectorOptions).toEqual("all");
+
+    // restore stub
+    EiscpModule.default.prototype.discover = originalDiscover;
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});

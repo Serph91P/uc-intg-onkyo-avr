@@ -171,8 +171,20 @@ export default class SetupHandler {
         port: currentAvr?.port,
         queueThreshold: currentAvr?.queueThreshold,
         albumArtURL: currentAvr?.albumArtURL,
-        listeningModeOptions: Array.isArray(currentAvr?.listeningModeOptions) ? currentAvr.listeningModeOptions.join("; ") : currentAvr?.listeningModeOptions === null ? "none" : "",
-        inputSelectorOptions: Array.isArray(currentAvr?.inputSelectorOptions) ? currentAvr.inputSelectorOptions.join("; ") : currentAvr?.inputSelectorOptions === null ? "none" : "",
+        listeningModeOptions: Array.isArray(currentAvr?.listeningModeOptions)
+          ? currentAvr.listeningModeOptions.join("; ")
+          : currentAvr?.listeningModeOptions === "all"
+            ? "all"
+            : currentAvr?.listeningModeOptions === null
+              ? "none"
+              : "",
+        inputSelectorOptions: Array.isArray(currentAvr?.inputSelectorOptions)
+          ? currentAvr.inputSelectorOptions.join("; ")
+          : currentAvr?.inputSelectorOptions === "all"
+            ? "all"
+            : currentAvr?.inputSelectorOptions === null
+              ? "none"
+              : "",
         volumeScale: currentAvr?.volumeScale,
         volumeDisplay: currentAvr?.volumeDisplay,
         adjustVolumeDispl: currentAvr?.adjustVolumeDispl,

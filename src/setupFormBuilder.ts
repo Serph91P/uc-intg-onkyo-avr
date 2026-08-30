@@ -142,15 +142,15 @@ export class SetupFormBuilder {
       },
       {
         id: "listeningModeOptions",
-        label: { en: "Listening mode select options (semicolon-separated, 'none' to disable, empty shows all)" },
+        label: { en: "Listening mode options (semicolon-separated), 'all' shows all, 'none' to disable)" },
         field: { text: { value: values.listeningModeOptions } },
-        description: { en: "Optional — semicolon-separated list (e.g. stereo; straight-decode; neural-thx). Leave empty for dynamic options, enter 'none' to hide this entity." }
+        description: { en: "Optional — semicolon-separated list (e.g. stereo; straight-decode; neural-thx). Enter 'all' for dynamic options, enter 'none' to hide this entity." }
       },
       {
         id: "inputSelectorOptions",
-        label: { en: "Input selector options (semicolon-separated, 'none' to disable, empty shows all)" },
+        label: { en: "Input selector options (semicolon-separated, 'all' shows all, 'none' to disable)" },
         field: { text: { value: values.inputSelectorOptions } },
-        description: { en: "Optional — semicolon-separated list (e.g. dvd; bd; net; bluetooth). Leave empty to show all inputs, enter 'none' to hide this entity." }
+        description: { en: "Optional — semicolon-separated list (e.g. dvd; bd; net; bluetooth). Enter 'all' to show all inputs, enter 'none' to hide this entity." }
       },
       {
         id: "logLevel",

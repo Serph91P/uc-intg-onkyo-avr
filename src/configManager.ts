@@ -4,7 +4,7 @@ import log, { setLogLevel } from "./loggers.js";
 
 // Re-export everything from configConstants so existing imports via configManager continue to work.
 export * from "./configConstants.js";
-import { MAX_LENGTHS, PATTERNS, parseSelectOptions, parseBoolean, AvrZone, AvrConfig, OnkyoConfig, AVR_DEFAULTS, EntityNameStyle, LogLevel } from "./configConstants.js";
+import { MAX_LENGTHS, PATTERNS, parseSelectOptions, parseBoolean, AvrZone, AvrConfig, OnkyoConfig, AVR_DEFAULTS, EntityNameStyle, LogLevel, ALL_OPTIONS, SelectOptions } from "./configConstants.js";
 
 const integrationName = "configManager:";
 
@@ -300,10 +300,11 @@ export class ConfigManager {
     }
 
     // Validate a select-options field (listeningModeOptions / inputSelectorOptions)
-    const validateSelectOptions = (raw: unknown, fieldName: string): string[] | null | undefined => {
+    const validateSelectOptions = (raw: unknown, fieldName: string): SelectOptions | undefined => {
       if (raw === undefined) return undefined;
       const parsed = parseSelectOptions(raw);
       if (parsed === null) return null; // 'none' sentinel: don't create entity
+      if (parsed === ALL_OPTIONS) return ALL_OPTIONS; // 'all'/empty sentinel: show all known options
       if (typeof raw !== "string" && !Array.isArray(raw) && raw !== null) {
         errors.push(`${fieldName} must be an array of strings or a semicolon-separated string`);
         return undefined;

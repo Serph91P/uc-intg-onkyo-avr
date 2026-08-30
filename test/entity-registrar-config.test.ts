@@ -33,3 +33,56 @@ it("EntityRegistrar returns user-configured listeningModeOptions from config", a
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+it("EntityRegistrar treats 'all' sentinel and legacy empty array as showing all listening modes", async () => {
+  const tmp = mkTmpDir();
+  try {
+    const module = (await import("../src/entityRegistrar.js")) as any;
+    const cfgModule = (await import("../src/configManager.js")) as any;
+
+    const { ConfigManager, setConfigDir } = cfgModule;
+    if (typeof setConfigDir === "function") setConfigDir(tmp);
+
+    const avrStateModule = (await import("../src/avrState.js")) as any;
+    const EntityRegistrar = module.default as any;
+    const { avrStateManager } = avrStateModule;
+    const registrar = new EntityRegistrar(avrStateManager);
+
+    for (const stored of ["all", []]) {
+      ConfigManager.save({ avrs: [{ model: "M", ip: "1.2.3.4", port: 60128, zone: "main", listeningModeOptions: stored }] });
+      const cfg = ConfigManager.load();
+      const avrEntry = `${cfg.avrs[0].model} ${cfg.avrs[0].ip} ${cfg.avrs[0].zone}`;
+      const opts = registrar.getListeningModeOptions(undefined, avrEntry);
+      // "all" (and legacy []) means show all known modes, not a restricted list.
+      expect(Array.isArray(opts)).toBe(true);
+      expect(opts.length).toBeGreaterThan(5);
+    }
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+it("EntityRegistrar treats 'all' sentinel as showing all input sources", async () => {
+  const tmp = mkTmpDir();
+  try {
+    const module = (await import("../src/entityRegistrar.js")) as any;
+    const cfgModule = (await import("../src/configManager.js")) as any;
+
+    const { ConfigManager, setConfigDir } = cfgModule;
+    if (typeof setConfigDir === "function") setConfigDir(tmp);
+
+    const avrStateModule = (await import("../src/avrState.js")) as any;
+    const EntityRegistrar = module.default as any;
+    const { avrStateManager } = avrStateModule;
+    const registrar = new EntityRegistrar(avrStateManager);
+
+    ConfigManager.save({ avrs: [{ model: "M", ip: "1.2.3.4", port: 60128, zone: "main", inputSelectorOptions: "all" }] });
+    const cfg = ConfigManager.load();
+    const avrEntry = `${cfg.avrs[0].model} ${cfg.avrs[0].ip} ${cfg.avrs[0].zone}`;
+    const opts = registrar.getInputSelectorOptions(avrEntry);
+    expect(Array.isArray(opts)).toBe(true);
+    expect(opts.length).toBeGreaterThan(5);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});

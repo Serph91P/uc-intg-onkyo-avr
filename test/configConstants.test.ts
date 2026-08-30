@@ -19,8 +19,16 @@ describe("configConstants", () => {
       expect(parseSelectOptions(null)).toBeNull();
     });
 
-    it("returns empty array for undefined", () => {
-      expect(parseSelectOptions(undefined)).toEqual([]);
+    it("returns all for undefined", () => {
+      expect(parseSelectOptions(undefined)).toEqual("all");
+    });
+
+    it("returns all for empty string", () => {
+      expect(parseSelectOptions("")).toEqual("all");
+    });
+
+    it("returns all for all string", () => {
+      expect(parseSelectOptions("all")).toEqual("all");
     });
 
     it("parses semicolon-separated string", () => {
@@ -35,8 +43,16 @@ describe("configConstants", () => {
       expect(parseSelectOptions(["NONE"])).toBeNull();
     });
 
+    it("returns all for all in array of length 1", () => {
+      expect(parseSelectOptions(["All"])).toEqual("all");
+    });
+
     it("returns array for non-none string in array", () => {
       expect(parseSelectOptions(["notnone"])).toEqual(["notnone"]);
+    });
+
+    it("returns all for an empty array", () => {
+      expect(parseSelectOptions([])).toEqual("all");
     });
 
     it("returns empty array for unknown type", () => {

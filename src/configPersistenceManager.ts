@@ -1,6 +1,6 @@
 // Focused responsibility: Handle auto-discovery and configuration persistence
 import EiscpDriver from "./eiscp.js";
-import { ConfigManager, type AvrConfig, type AvrZone, AVR_DEFAULTS, parseSelectOptions, type OnkyoConfig } from "./configManager.js";
+import { ConfigManager, type AvrConfig, type AvrZone, AVR_DEFAULTS, parseSelectOptions, ALL_OPTIONS, type OnkyoConfig } from "./configManager.js";
 import { setLogLevel } from "./loggers.js";
 import { type ParsedManualConfig } from "./manualConfigParser.js";
 
@@ -43,13 +43,13 @@ export class ConfigPersistenceManager {
       tuneinMenuStyle: parsedConfig.tuneinMenuStyleValue
     };
 
-    // Use parseSelectOptions which handles the 'none' sentinel (-> null = don't create entity)
+    // Use parseSelectOptions which handles the 'none' sentinel (-> null = don't create entity) and 'all'/empty (-> "all" = show all)
     const lmoResult = parseSelectOptions(parsedConfig.listeningModeOptions);
-    if (lmoResult === null || (Array.isArray(lmoResult) && lmoResult.length > 0)) {
+    if (lmoResult === null || lmoResult === ALL_OPTIONS || (Array.isArray(lmoResult) && lmoResult.length > 0)) {
       discoveredAvr.listeningModeOptions = lmoResult;
     }
     const isoResult = parseSelectOptions(parsedConfig.inputSelectorOptions);
-    if (isoResult === null || (Array.isArray(isoResult) && isoResult.length > 0)) {
+    if (isoResult === null || isoResult === ALL_OPTIONS || (Array.isArray(isoResult) && isoResult.length > 0)) {
       discoveredAvr.inputSelectorOptions = isoResult;
     }
 
