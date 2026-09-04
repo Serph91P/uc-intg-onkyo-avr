@@ -8,7 +8,7 @@
 
 The above items are related to each other, here are some examples to explain the behavior.
 
-1. Select Input Selector is left empty
+1. Select Input Selector is set to `all`
 
 - the `Input source` in Web Configurator shows all possible options (also accepts text commands)
 - the `Sources` button in MediaWidget shows all possible sources
