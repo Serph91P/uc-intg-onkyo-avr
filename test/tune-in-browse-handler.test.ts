@@ -209,7 +209,7 @@ describe("TuneInBrowseHandler", () => {
       );
 
       expect(cmdHandler).not.toHaveBeenCalled();
-      expect(mediaBrowser.browseMedia).toHaveBeenCalled();
+      expect(mediaBrowser.browseMedia).not.toHaveBeenCalled();
     });
 
     it("reloads root when explicit main menu selection even with existing state", async () => {

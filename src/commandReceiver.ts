@@ -8,6 +8,7 @@ import { eiscpMappings } from "./eiscp-mappings.js";
 import log, { getLogLevel } from "./loggers.js";
 import { ZoneAgnosticUpdateProcessor } from "./zoneAgnosticUpdateProcessor.js";
 import { SENSOR_SUFFIXES } from "./sensorSuffixes.js";
+import { diracServiceKeyToOption } from "./diracSelect.js";
 import { AV_INFO_REQUERY_DELAY } from "./constants.js";
 import type { AvrStateApi } from "./types.js";
 
@@ -190,6 +191,9 @@ export class CommandReceiver {
           [uc.SensorAttributes.Value]: "no data"
         });
       }
+      // AVR is no longer playing anything; drop stale TuneIn "now playing" marks so re-entering
+      // TuneIn later starts with a clean media browser.
+      this.zoneAgnosticProcessor.clearTuneInBrowseMarkers(entityId);
     }
   }
 
@@ -271,6 +275,18 @@ export class CommandReceiver {
     });
   }
 
+  private async handleDirac(avrUpdates: AvrUpdateEvent, entityId: string): Promise<void> {
+    const diracSlot = diracServiceKeyToOption(avrUpdates.argument.toString());
+    if (diracSlot === "undefined" || diracSlot === "unknown" || diracSlot === "query") {
+      log.info("%s [%s] dirac '%s', keeping current value (no update)", integrationName, entityId, diracSlot);
+      return;
+    }
+    log.info("%s [%s] dirac set to: %s", integrationName, entityId, diracSlot);
+    this.driver.updateEntityAttributes(`${entityId}_dirac`, {
+      [SelectAttributes.CurrentOption]: diracSlot
+    });
+  }
+
   private async handleIFV(avrUpdates: AvrUpdateEvent, entityId: string): Promise<void> {
     const arg = avrUpdates.argument as Record<string, string> | undefined;
     const videoInputValue = arg?.videoInputValue ?? "";
@@ -296,6 +312,52 @@ export class CommandReceiver {
     }
   }
 
+  private async handleToneFront(avrUpdates: AvrUpdateEvent, entityId: string): Promise<void> {
+    const arg = avrUpdates.argument as Record<string, string | number> | undefined;
+    const bass = arg?.bass;
+    const treble = arg?.treble;
+    if (bass !== undefined && bass !== null) {
+      this.driver.updateEntityAttributes(`${entityId}_bass_sensor`, {
+        [uc.SensorAttributes.State]: uc.SensorStates.On,
+        [uc.SensorAttributes.Value]: String(bass)
+      });
+    }
+    if (treble !== undefined && treble !== null) {
+      this.driver.updateEntityAttributes(`${entityId}_treble_sensor`, {
+        [uc.SensorAttributes.State]: uc.SensorStates.On,
+        [uc.SensorAttributes.Value]: String(treble)
+      });
+    }
+    log.info("%s [%s] tone-front bass=%s treble=%s", integrationName, entityId, bass, treble);
+  }
+
+  private async handleVocal(avrUpdates: AvrUpdateEvent, entityId: string): Promise<void> {
+    const level = Number(avrUpdates.argument);
+    log.info("%s [%s] vocal set to: %s", integrationName, entityId, level);
+    this.driver.updateEntityAttributes(`${entityId}_vocal_sensor`, {
+      [uc.SensorAttributes.State]: uc.SensorStates.On,
+      [uc.SensorAttributes.Value]: Number.isNaN(level) ? String(avrUpdates.argument) : String(level)
+    });
+  }
+
+  private async handleCenterLevel(avrUpdates: AvrUpdateEvent, entityId: string): Promise<void> {
+    const level = Number(avrUpdates.argument);
+    log.info("%s [%s] center-temporary-level set to: %s", integrationName, entityId, level);
+    this.driver.updateEntityAttributes(`${entityId}_temp_center_sensor`, {
+      [uc.SensorAttributes.State]: uc.SensorStates.On,
+      [uc.SensorAttributes.Value]: Number.isNaN(level) ? String(avrUpdates.argument) : `${level.toFixed(1)} dB`
+    });
+  }
+
+  private async handleSubwooferLevel(avrUpdates: AvrUpdateEvent, entityId: string): Promise<void> {
+    const level = Number(avrUpdates.argument);
+    log.info("%s [%s] subwoofer-temporary-level set to: %s", integrationName, entityId, level);
+    this.driver.updateEntityAttributes(`${entityId}_temp_subwoofer_sensor`, {
+      [uc.SensorAttributes.State]: uc.SensorStates.On,
+      [uc.SensorAttributes.Value]: Number.isNaN(level) ? String(avrUpdates.argument) : `${level.toFixed(1)} dB`
+    });
+  }
+
   private readonly eventHandlers: Record<string, (avrUpdates: AvrUpdateEvent, entityId: string, eventZone: string) => Promise<void>> = {
     "system-power": (u, e) => this.handleSystemPower(u, e),
     "audio-muting": (u, e) => this.handleAudioMuting(u, e),
@@ -303,7 +365,12 @@ export class CommandReceiver {
     preset: (u, e) => this.handlePreset(u, e),
     "input-selector": (u, e, z) => this.handleInputSelector(u, e, z),
     "listening-mode": (u, e, z) => this.handleListeningMode(u, e, z),
-    IFV: (u, e) => this.handleIFV(u, e)
+    dirac: (u, e) => this.handleDirac(u, e),
+    IFV: (u, e) => this.handleIFV(u, e),
+    "tone-front": (u, e) => this.handleToneFront(u, e),
+    vocal: (u, e) => this.handleVocal(u, e),
+    "center-temporary-level": (u, e) => this.handleCenterLevel(u, e),
+    "subwoofer-temporary-level": (u, e) => this.handleSubwooferLevel(u, e)
   };
 
   setupEiscpListener() {

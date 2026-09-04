@@ -22,7 +22,9 @@ export class SelectEntityHandler {
     /** Human-readable label used in log messages (e.g. "Listening Mode"). */
     private readonly logLabel: string,
     /** Returns the ordered list of valid option strings for the given AVR entry. */
-    private readonly getOptions: (avrEntry: string) => string[]
+    private readonly getOptions: (avrEntry: string) => string[],
+    /** Optional: translate a UI option label to the eiscp argument sent to the AVR (default: identity). */
+    private readonly optionToArg: (option: string) => string = (o) => o
   ) {
     // Derive "listeningModeHandler:" / "inputSelectorHandler:" from the suffix.
     this.integrationName = entitySuffix.slice(1).replace(/_(\w)/g, (_, c: string) => c.toUpperCase()) + "Handler:";
@@ -92,7 +94,7 @@ export class SelectEntityHandler {
       await physicalConnection.eiscp.command({
         zone: instance.config.zone,
         command: this.eiscpCommand,
-        args: newOption
+        args: this.optionToArg(newOption)
       });
 
       this.driver.updateEntityAttributes(entity.id, {

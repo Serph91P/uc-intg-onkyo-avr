@@ -227,3 +227,37 @@ it("Remote entity UI stays static regardless of configured options", async () =>
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+it("EntityRegistrar creates treble, bass, vocal, center and subwoofer sensors", async () => {
+  const tmp = mkTmpDir();
+  try {
+    const cfgModule = await import("../src/configManager.js");
+    if (typeof (cfgModule as any).setConfigDir === "function") {
+      (cfgModule as any).setConfigDir(tmp);
+    }
+    const module = await import("../src/entityRegistrar.js");
+    const avrStateModule = await import("../src/avrState.js");
+    const EntityRegistrar = module.default as any;
+    const { avrStateManager } = avrStateModule as any;
+    const registrar = new EntityRegistrar(avrStateManager);
+
+    const avrEntry = "TX-RZ50 192.168.1.2 main";
+    const sensors = registrar.createSensorEntities(avrEntry) as any[];
+
+    const expectedSensors = [
+      { suffix: "_treble_sensor", label: "Treble" },
+      { suffix: "_bass_sensor", label: "Bass" },
+      { suffix: "_vocal_sensor", label: "Vocal" },
+      { suffix: "_temp_center_sensor", label: "Center" },
+      { suffix: "_temp_subwoofer_sensor", label: "Subwoofer" }
+    ];
+    for (const { suffix, label } of expectedSensors) {
+      const sensor = sensors.find((s) => s.id === `${avrEntry}${suffix}`);
+      expect(sensor).toBeTruthy();
+      expect(sensor.name?.en).toBe(`TX-RZ50 Main ${label}`);
+    }
+    expect(sensors.length).toBe(14);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});

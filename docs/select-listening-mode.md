@@ -19,7 +19,7 @@ As the list of all known options is very long and the AVR does not return a dyna
 
 - Behavior:
   - If you provide a list, the `listening-mode` select-entity will show _only_ those options for that AVR regardless of the current source/activity.
-  - If you leave the field empty the driver continues to use the dynamic, audio-format filtered list.
+  - If you set it to `all` the driver continues to use the dynamic, audio-format filtered list.
   - If you enter `none` the select-entity will not be created.
   - The configured list is saved, included in backups, and persists across reboots.
 

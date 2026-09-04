@@ -515,6 +515,54 @@ it("TuneIn service selection preloads My Presets for browsing", async () => {
   expect(rawCommands.some((cmd) => cmd.startsWith("NLAL"))).toBe(true);
 });
 
+it("clears the stale TuneIn now-playing mark after switching to DAB and back to TuneIn", async () => {
+  const avrStateModule = await import("../src/avrState.js");
+  const processorModule = await import("../src/zoneAgnosticUpdateProcessor.js");
+  const tuneInBrowserStoreModule = await import("../src/tuneInBrowserStore.js");
+  const tuneInMenuStoreModule = await import("../src/tuneInMenuStore.js");
+
+  const { avrStateManager } = avrStateModule as any;
+  const { ZoneAgnosticUpdateProcessor } = processorModule as any;
+  const { addTuneInPreset, updateNowPlayingStation, getTuneInBrowseState } = tuneInBrowserStoreModule as any;
+  const { setTuneInMenuNowPlayingStation, getTuneInMenuBrowseState } = tuneInMenuStoreModule as any;
+
+  const rawCommands: string[] = [];
+  const mockDriver = { updateEntityAttributes: () => true } as any;
+  const mockEiscp = {
+    config: { netMenuDelay: 0, tuneinPresetPosition: 1 },
+    eiscpConfig: { sendDelay: 0 },
+    command: async () => undefined,
+    raw: async (cmd: string) => {
+      rawCommands.push(cmd);
+    }
+  } as any;
+
+  const entityId = "TX-RZ50 192.168.2.113 main";
+  const processor = new ZoneAgnosticUpdateProcessor(mockDriver, { ip: "192.168.2.113", albumArtURL: "na" } as any, mockEiscp, avrStateManager);
+
+  avrStateManager.setPowerState(entityId, "on", mockDriver);
+  avrStateManager.setSource(entityId, "net", undefined, undefined, mockDriver);
+
+  // Start a TuneIn session and mark a station as now playing.
+  await processor.handleNlt(entityId, "TuneIn", "main");
+  addTuneInPreset(entityId, "JOE Non-stop (80's)", "JOE Non-stop (80's)", "JOE Non-stop (80's)", () => "");
+  updateNowPlayingStation(entityId, "JOE Non-stop (80's)");
+  setTuneInMenuNowPlayingStation(entityId, "JOE Non-stop (80's)");
+  expect(getTuneInBrowseState(entityId)?.nowPlayingStation ?? "").toBe("JOE Non-stop (80's)");
+  expect(getTuneInMenuBrowseState(entityId)?.nowPlayingTitle ?? "").toBe("JOE Non-stop (80's)");
+
+  // Leave for DAB: the stale sub-source must be dropped so a later re-entry is detected as a change.
+  avrStateManager.setSource(entityId, "dab", undefined, undefined, mockDriver);
+  expect(avrStateManager.getSubSource(entityId)).toBe("unknown");
+
+  // Return to TuneIn: the entry event fires again and must drop the stale marker.
+  avrStateManager.setSource(entityId, "net", undefined, undefined, mockDriver);
+  await processor.handleNlt(entityId, "TuneIn", "main");
+
+  expect(getTuneInBrowseState(entityId)?.nowPlayingStation ?? "").toBe("");
+  expect(getTuneInMenuBrowseState(entityId)?.nowPlayingTitle ?? "").toBe("");
+});
+
 it("CommandSender silently absorbs shuffle, repeat, and browse commands", async () => {
   const senderModule = await import("../src/commandSender.js");
   const avrStateModule = await import("../src/avrState.js");

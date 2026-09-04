@@ -2,8 +2,9 @@
 
 This integration offers `select entities`.
 
-Current available `Select` entities (v0.8.1):
+Current available `Select` entities (v0.9.3):
 
+- [Dirac](select-dirac.md)
 - [Listening Mode](select-listening-mode.md)
 - [Input Selector](select-input-selector.md)
 

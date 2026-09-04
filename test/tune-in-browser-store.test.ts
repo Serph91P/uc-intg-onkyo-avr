@@ -79,6 +79,23 @@ describe("tuneInBrowserStore", () => {
     expect(state.nowPlayingStation).toBe("");
   });
 
+  it("resetTuneInBrowseState clears nowPlayingStation but keeps presets", () => {
+    const id = "G2 1.2.3.4 main";
+    const state = store.getTuneInBrowseState(id);
+    store.addTuneInPreset(id, "Radio 1", "radio1", "Radio 1", vi.fn());
+    store.updateNowPlayingStation(id, "Radio 1");
+    expect(state.nowPlayingStation).toBe("Radio 1");
+
+    store.resetTuneInBrowseState(id);
+
+    expect(state.nowPlayingStation).toBe("");
+    expect(store.listTuneInPresets(id)).toHaveLength(1);
+  });
+
+  it("resetTuneInBrowseState is no-op for invalid entityId", () => {
+    expect(() => store.resetTuneInBrowseState(invalidEntityId)).not.toThrow();
+  });
+
   it("listTuneInPresets returns [] for invalid entityId", () => {
     expect(store.listTuneInPresets(invalidEntityId)).toEqual([]);
   });

@@ -15,8 +15,8 @@ import {
 import { getDeezerBrowseState, resetDeezerBrowseState } from "./deezerBrowserStore.js";
 import { getMusicServerBrowseState, resetMusicServerBrowseState } from "./musicServerBrowserStore.js";
 import { getTidalBrowseState, resetTidalBrowseState } from "./tidalBrowserStore.js";
-import { updateNowPlayingStation } from "./tuneInBrowserStore.js";
-import { resetTuneInMenuBrowseState, updateTuneInMenuNowPlayingStation } from "./tuneInMenuStore.js";
+import { resetTuneInBrowseState, updateNowPlayingStation } from "./tuneInBrowserStore.js";
+import { resetTuneInMenuBrowseState, setTuneInMenuNowPlayingStation, updateTuneInMenuNowPlayingStation } from "./tuneInMenuStore.js";
 import { DEEZER_SERVICE_ID, MUSIC_SERVER_SERVICE_ID, TIDAL_SERVICE_ID, TUNEIN_SERVICE_ID } from "./browseServiceContract.js";
 
 type SubSourceStateApi = {
@@ -33,6 +33,8 @@ export type ZoneAgnosticServiceAdapter = {
   handleNls(sourceEntityId: string, entry: string): void;
   handleNla(sourceEntityId: string, xmlPayload: string): void;
   handleMetadata(zoneEntityId: string, artist: string): void;
+  /** Drop stale now-playing marks so a fresh (re-)entry of the service starts with a clean browser. */
+  clearNowPlayingForZones?(zoneEntityIds: string[]): void;
 };
 
 type AdapterDeps = {
@@ -64,11 +66,21 @@ export class TuneInZoneAgnosticAdapter implements ZoneAgnosticServiceAdapter {
   }
 
   async onServiceEntered(sourceEntityId: string, affectedZones: string[], enteringZones: string[]): Promise<void> {
-    for (const zoneEntityId of enteringZones) {
-      resetTuneInMenuBrowseState(zoneEntityId);
-    }
+    // A fresh TuneIn entry must drop any stale "now playing" mark so the browser starts clean.
+    // Use the full affected zone list: if the internal sub-source still reports TuneIn (e.g. after
+    // AVR standby or re-selecting the same source), enteringZones can be empty and the stale mark
+    // would otherwise survive.
+    this.clearNowPlayingForZones(affectedZones.length > 0 ? affectedZones : enteringZones);
 
     await this.maybePreloadTuneIn(sourceEntityId, affectedZones);
+  }
+
+  clearNowPlayingForZones(zoneEntityIds: string[]): void {
+    for (const zoneEntityId of zoneEntityIds) {
+      resetTuneInMenuBrowseState(zoneEntityId);
+      setTuneInMenuNowPlayingStation(zoneEntityId, "");
+      resetTuneInBrowseState(zoneEntityId);
+    }
   }
 
   async onServiceDetectedFromFld(sourceEntityId: string, netZones: string[]): Promise<void> {
