@@ -1,6 +1,6 @@
-# Onkyo AVR / Pioneer AVR / Integra AVR
+# Onkyo AVR / Pioneer AVR / Integra AVR (eISCP)
 
-Custom integration for Unfolded Circle remotes to control your Onkyo / Pioneer / Integra AVR.
+Custom integration for Unfolded Circle remotes to control your Onkyo / Pioneer / Integra AVR (eISCP).
 
 [![GitHub Release](https://img.shields.io/github/v/release/EddyMcNut/uc-intg-onkyo-avr)](https://github.com/EddyMcNut/uc-intg-onkyo-avr/releases)
 [![License](https://img.shields.io/badge/license-MPL--2.0-blue.svg)](https://github.com/EddyMcNut/uc-intg-onkyo-avr/blob/main/LICENSE)
