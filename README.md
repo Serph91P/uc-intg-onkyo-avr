@@ -12,6 +12,7 @@ Custom integration for Unfolded Circle remotes to control your Onkyo / Pioneer /
 You use this integration at your own risk!
 
 ## Prerequisites
+
 _If your AVR has been disconnected from power, it could be that you first have to switch on your AVR manually one time before network commands work again (depends on the model), waking up after STANDBY should then work again._
 
 - Your AVR(s) needs a fixed IP address.

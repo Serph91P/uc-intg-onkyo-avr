@@ -9,6 +9,7 @@ This entity will offer a drop down of Dirac options `Off`, `Slot 1`, `Slot 2`, `
 It also acts as a Sensor, showing the current Dirac setting.
 
 Instead of using the Selector, you could also use simple commands in your activities.
+
 - DIRAC_OFF
 - DIRAC_SLOT1
 - DIRAC_SLOT2
