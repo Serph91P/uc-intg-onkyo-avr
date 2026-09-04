@@ -6,6 +6,10 @@ This generated document describes the generic architecture and operational model
 
 This integration uses an **event-based bidirectional communication model** with your AVR. Commands are sent to the AVR, and the AVR responds with state updates that are processed asynchronously. The AVR also sends unsolicited state updates when changes occur locally (e.g., volume adjusted manually on AVR).
 
+The integration is always listening for updates send out by the AVR. Let's say you send a 'volume up' command to the AVR, then this integration just sends a volume up command to the AVR and the action is completed, it does not wait for a response. The AVR sends out the new volume level (for example volume = 25), this integration receives that updates as it is always listening, the received update is used to update the volume info on your remote.
+
+Similar process is followed for each and every command.
+
 ## Communication Protocol
 
 The integration uses **eISCP (Ethernet Integrated Serial Control Protocol)**, which is Onkyo's proprietary network protocol for controlling their AVRs over TCP/IP.

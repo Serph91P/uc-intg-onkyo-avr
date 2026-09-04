@@ -55,8 +55,6 @@ class AvrStateQueryService {
       await delay(threshold);
       await eiscpInstance.command({ zone, command: "listening-mode", args: "query" });
       await delay(threshold * 3);
-      await eiscpInstance.command({ zone, command: "dirac", args: "query" });
-      await delay(threshold);
       await eiscpInstance.command({ zone, command: "fp-display", args: "query" });
       await delay(threshold);
       await eiscpInstance.command({ zone, command: "tone-front", args: "query" });
@@ -66,6 +64,8 @@ class AvrStateQueryService {
       await eiscpInstance.command({ zone, command: "center-temporary-level", args: "query" });
       await delay(threshold);
       await eiscpInstance.command({ zone, command: "subwoofer-temporary-level", args: "query" });
+      await delay(threshold);
+      await eiscpInstance.command({ zone, command: "dirac", args: "query" });
     } catch (err) {
       log.warn(`${integrationName} [%s] Failed to query AVR state (%s):`, entityId, context, err);
     }

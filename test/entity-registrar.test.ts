@@ -248,8 +248,8 @@ it("EntityRegistrar creates treble, bass, vocal, center and subwoofer sensors", 
       { suffix: "_treble_sensor", label: "Treble" },
       { suffix: "_bass_sensor", label: "Bass" },
       { suffix: "_vocal_sensor", label: "Vocal" },
-      { suffix: "_center_sensor", label: "Center" },
-      { suffix: "_subwoofer_sensor", label: "Subwoofer" }
+      { suffix: "_temp_center_sensor", label: "Center" },
+      { suffix: "_temp_subwoofer_sensor", label: "Subwoofer" }
     ];
     for (const { suffix, label } of expectedSensors) {
       const sensor = sensors.find((s) => s.id === `${avrEntry}${suffix}`);

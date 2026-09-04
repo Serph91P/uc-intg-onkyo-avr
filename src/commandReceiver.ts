@@ -343,7 +343,7 @@ export class CommandReceiver {
   private async handleCenterLevel(avrUpdates: AvrUpdateEvent, entityId: string): Promise<void> {
     const level = Number(avrUpdates.argument);
     log.info("%s [%s] center-temporary-level set to: %s", integrationName, entityId, level);
-    this.driver.updateEntityAttributes(`${entityId}_center_sensor`, {
+    this.driver.updateEntityAttributes(`${entityId}_temp_center_sensor`, {
       [uc.SensorAttributes.State]: uc.SensorStates.On,
       [uc.SensorAttributes.Value]: Number.isNaN(level) ? String(avrUpdates.argument) : `${level.toFixed(1)} dB`
     });
@@ -352,7 +352,7 @@ export class CommandReceiver {
   private async handleSubwooferLevel(avrUpdates: AvrUpdateEvent, entityId: string): Promise<void> {
     const level = Number(avrUpdates.argument);
     log.info("%s [%s] subwoofer-temporary-level set to: %s", integrationName, entityId, level);
-    this.driver.updateEntityAttributes(`${entityId}_subwoofer_sensor`, {
+    this.driver.updateEntityAttributes(`${entityId}_temp_subwoofer_sensor`, {
       [uc.SensorAttributes.State]: uc.SensorStates.On,
       [uc.SensorAttributes.Value]: Number.isNaN(level) ? String(avrUpdates.argument) : `${level.toFixed(1)} dB`
     });

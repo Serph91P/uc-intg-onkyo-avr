@@ -236,8 +236,8 @@ export default class EntityRegistrar {
       { suffix: "_treble_sensor", label: "Treble", initialValue: "", options: {} },
       { suffix: "_bass_sensor", label: "Bass", initialValue: "", options: {} },
       { suffix: "_vocal_sensor", label: "Vocal", initialValue: "", options: {} },
-      { suffix: "_center_sensor", label: "Center", initialValue: "", options: {} },
-      { suffix: "_subwoofer_sensor", label: "Subwoofer", initialValue: "", options: {} }
+      { suffix: "_temp_center_sensor", label: "Center", initialValue: "", options: {} },
+      { suffix: "_temp_subwoofer_sensor", label: "Subwoofer", initialValue: "", options: {} }
     ];
 
     for (const def of SENSOR_DEFS) {

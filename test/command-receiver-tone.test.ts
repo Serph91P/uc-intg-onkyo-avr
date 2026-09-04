@@ -83,7 +83,7 @@ describe("handleCenterLevel", () => {
     const handlers = (receiver as any).eventHandlers;
     await handlers["center-temporary-level"](avrUpdates, "M 1.2.3.4 main", "main");
 
-    expect(driverMock.updateEntityAttributes).toHaveBeenCalledWith("M 1.2.3.4 main_center_sensor", expect.objectContaining({ [uc.SensorAttributes.Value]: "7.0 dB" }));
+    expect(driverMock.updateEntityAttributes).toHaveBeenCalledWith("M 1.2.3.4 main_temp_center_sensor", expect.objectContaining({ [uc.SensorAttributes.Value]: "7.0 dB" }));
   });
 
   it("reports negative half-step center level", async () => {
@@ -92,7 +92,7 @@ describe("handleCenterLevel", () => {
     const handlers = (receiver as any).eventHandlers;
     await handlers["center-temporary-level"](avrUpdates, "M 1.2.3.4 main", "main");
 
-    expect(driverMock.updateEntityAttributes).toHaveBeenCalledWith("M 1.2.3.4 main_center_sensor", expect.objectContaining({ [uc.SensorAttributes.Value]: "-0.5 dB" }));
+    expect(driverMock.updateEntityAttributes).toHaveBeenCalledWith("M 1.2.3.4 main_temp_center_sensor", expect.objectContaining({ [uc.SensorAttributes.Value]: "-0.5 dB" }));
   });
 });
 
@@ -103,7 +103,7 @@ describe("handleSubwooferLevel", () => {
     const handlers = (receiver as any).eventHandlers;
     await handlers["subwoofer-temporary-level"](avrUpdates, "M 1.2.3.4 main", "main");
 
-    expect(driverMock.updateEntityAttributes).toHaveBeenCalledWith("M 1.2.3.4 main_subwoofer_sensor", expect.objectContaining({ [uc.SensorAttributes.Value]: "-0.5 dB" }));
+    expect(driverMock.updateEntityAttributes).toHaveBeenCalledWith("M 1.2.3.4 main_temp_subwoofer_sensor", expect.objectContaining({ [uc.SensorAttributes.Value]: "-0.5 dB" }));
   });
 
   it("reports positive subwoofer level in dB", async () => {
@@ -112,6 +112,6 @@ describe("handleSubwooferLevel", () => {
     const handlers = (receiver as any).eventHandlers;
     await handlers["subwoofer-temporary-level"](avrUpdates, "M 1.2.3.4 main", "main");
 
-    expect(driverMock.updateEntityAttributes).toHaveBeenCalledWith("M 1.2.3.4 main_subwoofer_sensor", expect.objectContaining({ [uc.SensorAttributes.Value]: "6.0 dB" }));
+    expect(driverMock.updateEntityAttributes).toHaveBeenCalledWith("M 1.2.3.4 main_temp_subwoofer_sensor", expect.objectContaining({ [uc.SensorAttributes.Value]: "6.0 dB" }));
   });
 });
