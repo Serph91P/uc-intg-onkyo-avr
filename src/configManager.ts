@@ -4,7 +4,7 @@ import log, { setLogLevel } from "./loggers.js";
 
 // Re-export everything from configConstants so existing imports via configManager continue to work.
 export * from "./configConstants.js";
-import { MAX_LENGTHS, PATTERNS, parseSelectOptions, parseBoolean, AvrZone, AvrConfig, OnkyoConfig, AVR_DEFAULTS, EntityNameStyle, LogLevel } from "./configConstants.js";
+import { MAX_LENGTHS, PATTERNS, parseSelectOptions, parseBoolean, AvrZone, AvrConfig, OnkyoConfig, AVR_DEFAULTS, EntityNameStyle, LogLevel, ALL_OPTIONS, SelectOptions } from "./configConstants.js";
 
 const integrationName = "configManager:";
 
@@ -41,6 +41,7 @@ export class ConfigManager {
       entityNameStyle: avr.entityNameStyle ?? AVR_DEFAULTS.entityNameStyle,
       createSensors: avr.createSensors ?? AVR_DEFAULTS.createSensors,
       createRemoteEntity: avr.createRemoteEntity ?? AVR_DEFAULTS.createRemoteEntity,
+      createDiracSelectEntity: avr.createDiracSelectEntity ?? AVR_DEFAULTS.createDiracSelectEntity,
       netMenuDelay: avr.netMenuDelay ?? AVR_DEFAULTS.netMenuDelay,
       tuneinPresetPosition: avr.tuneinPresetPosition ?? AVR_DEFAULTS.tuneinPresetPosition,
       tuneinMenuStyle: avr.tuneinMenuStyle ?? AVR_DEFAULTS.tuneinMenuStyle,
@@ -269,6 +270,11 @@ export class ConfigManager {
       errors.push("createRemoteEntity must be boolean");
     }
 
+    // createDiracSelectEntity
+    if (avr.createDiracSelectEntity !== undefined && typeof avr.createDiracSelectEntity !== "boolean" && !(typeof avr.createDiracSelectEntity === "string")) {
+      errors.push("createDiracSelectEntity must be boolean");
+    }
+
     // netMenuDelay
     if (avr.netMenuDelay !== undefined) {
       const nm = typeof avr.netMenuDelay === "number" ? avr.netMenuDelay : parseInt(String(avr.netMenuDelay), 10);
@@ -294,10 +300,11 @@ export class ConfigManager {
     }
 
     // Validate a select-options field (listeningModeOptions / inputSelectorOptions)
-    const validateSelectOptions = (raw: unknown, fieldName: string): string[] | null | undefined => {
+    const validateSelectOptions = (raw: unknown, fieldName: string): SelectOptions | undefined => {
       if (raw === undefined) return undefined;
       const parsed = parseSelectOptions(raw);
       if (parsed === null) return null; // 'none' sentinel: don't create entity
+      if (parsed === ALL_OPTIONS) return ALL_OPTIONS; // 'all'/empty sentinel: show all known options
       if (typeof raw !== "string" && !Array.isArray(raw) && raw !== null) {
         errors.push(`${fieldName} must be an array of strings or a semicolon-separated string`);
         return undefined;
@@ -336,6 +343,7 @@ export class ConfigManager {
       entityNameStyle: (String(avr.entityNameStyle ?? AVR_DEFAULTS.entityNameStyle).toLowerCase() === "short" ? "short" : "long") as EntityNameStyle,
       createSensors: parseBoolean(avr.createSensors, AVR_DEFAULTS.createSensors),
       createRemoteEntity: parseBoolean(avr.createRemoteEntity, AVR_DEFAULTS.createRemoteEntity),
+      createDiracSelectEntity: parseBoolean(avr.createDiracSelectEntity, AVR_DEFAULTS.createDiracSelectEntity),
       netMenuDelay: typeof avr.netMenuDelay === "string" ? parseInt(avr.netMenuDelay, 10) : avr.netMenuDelay,
       tuneinPresetPosition: typeof avr.tuneinPresetPosition === "string" ? parseInt(avr.tuneinPresetPosition, 10) : avr.tuneinPresetPosition,
       tuneinMenuStyle: String(avr.tuneinMenuStyle ?? AVR_DEFAULTS.tuneinMenuStyle).toLowerCase() === "full" ? "full" : "mypresets",

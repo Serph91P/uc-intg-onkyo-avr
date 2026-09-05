@@ -57,6 +57,7 @@ const h = vi.hoisted(() => {
       createSensorEntities: vi.fn(() => [{ id: "sensor_1" }]),
       createListeningModeSelectEntity: vi.fn(() => ({ id: "lm_entity" })),
       createInputSelectorSelectEntity: vi.fn(() => ({ id: "is_entity" })),
+      createDiracSelectEntity: vi.fn(() => ({ id: "dirac_entity" })),
       createRemoteEntity: vi.fn(() => ({ id: "remote_entity" })),
       getListeningModeOptions: vi.fn(() => ["option1"]),
       getInputSelectorOptions: vi.fn(() => ["input1"])

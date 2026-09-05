@@ -9,6 +9,7 @@ import { ZoneMediaRenderer } from "./zoneMediaRenderer.js";
 import { DeezerZoneAgnosticAdapter, MusicServerZoneAgnosticAdapter, TidalZoneAgnosticAdapter, TuneInZoneAgnosticAdapter, type ZoneAgnosticServiceAdapter } from "./zoneAgnosticServiceAdapters.js";
 import { ZoneAgnosticServiceCommandRouter } from "./zoneAgnosticServiceCommandRouter.js";
 import { ZoneAgnosticFrontPanelRouter } from "./zoneAgnosticFrontPanelRouter.js";
+import { TUNEIN_SERVICE_ID } from "./browseServiceContract.js";
 import type { AvrStateApi } from "./types.js";
 
 const integrationName = "zoneAgnosticUpdateProcessor:";
@@ -143,6 +144,13 @@ export class ZoneAgnosticUpdateProcessor {
   // Aborts an in-flight TuneIn preload for the given entity's AVR. Returns true if a preload was running and has been flagged to stop.
   abortTuneInPreload(entityId: string): boolean {
     return this.tuneInPreloader.abortPreload(entityId);
+  }
+
+  // Drop stale TuneIn "now playing" marks for the entity's AVR (e.g. when it goes to standby), so a later
+  // re-entry into TuneIn starts with a clean media browser instead of a stale previous station.
+  clearTuneInBrowseMarkers(entityId: string): void {
+    const netZones = this.getNetZones(entityId);
+    this.getServiceAdapter(TUNEIN_SERVICE_ID)?.clearNowPlayingForZones?.(netZones);
   }
 
   async handleIfa(

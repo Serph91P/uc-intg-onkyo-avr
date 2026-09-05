@@ -16,6 +16,7 @@ import SetupHandler from "./setupHandler.js";
 import EntityRegistrar from "./entityRegistrar.js";
 import ConnectionManager from "./connectionManager.js";
 import { SelectEntityHandler } from "./selectEntityHandler.js";
+import { DIRAC_OPTION_LABELS, diracOptionToServiceKey } from "./diracSelect.js";
 import { remoteEntityCommandHandler } from "./remoteEntityCommandHandler.js";
 import SubscriptionHandler from "./subscriptionHandler.js";
 import ConnectCoordinator from "./connectCoordinator.js";
@@ -53,6 +54,7 @@ export default class OnkyoDriver {
   private entityRegistrar: EntityRegistrar;
   private listeningModeHandler: SelectEntityHandler;
   private inputSelectorHandler: SelectEntityHandler;
+  private diracHandler: SelectEntityHandler;
   private remoteEntityCommandHandler: remoteEntityCommandHandler;
   private subscriptionHandler: SubscriptionHandler;
   private connectCoordinator: ConnectCoordinator;
@@ -102,6 +104,7 @@ export default class OnkyoDriver {
     this.inputSelectorHandler = new SelectEntityHandler(this.driver, this.connectionManager, this.avrInstances, "_input_selector", "input-selector", "Input Selector", (avrEntry) =>
       this.entityRegistrar.getInputSelectorOptions(avrEntry)
     );
+    this.diracHandler = new SelectEntityHandler(this.driver, this.connectionManager, this.avrInstances, "_dirac", "dirac", "Dirac", () => [...DIRAC_OPTION_LABELS], diracOptionToServiceKey);
     this.remoteEntityCommandHandler = new remoteEntityCommandHandler(this.driver, this.connectionManager, this.avrInstances, this.avrStateApi);
     this.subscriptionHandler = new SubscriptionHandler(this.connectionManager, this.avrInstances);
 
@@ -217,6 +220,16 @@ export default class OnkyoDriver {
           }
         },
         disabledMessage: `${integrationName} [${avrEntry}] Input Selector select entity disabled by user preference (none)`
+      },
+
+      // ── Dirac select — conditional on createDiracSelectEntity flag ─────────
+      {
+        enabled: (cfg) => cfg.createDiracSelectEntity !== false,
+        create: () => {
+          const handler = this.diracHandler?.handle.bind(this.diracHandler) ?? (async () => uc.StatusCodes.Ok);
+          return this.entityRegistrar.createDiracSelectEntity(avrEntry, handler);
+        },
+        disabledMessage: `${integrationName} [${avrEntry}] Dirac select entity disabled by user preference`
       }
     ];
   }

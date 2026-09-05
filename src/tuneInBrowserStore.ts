@@ -108,6 +108,16 @@ export function updateNowPlayingStation(entityId: string, candidate: string): vo
   }
 }
 
+// Clear the now-playing station marker on a fresh service entry so the browser starts clean.
+// Presets are intentionally kept: they are the cached "My Presets" list and are only re-harvested lazily.
+export function resetTuneInBrowseState(entityId: string): void {
+  const state = getTuneInBrowseState(entityId);
+  if (!state) {
+    return;
+  }
+  state.nowPlayingStation = "";
+}
+
 export function listTuneInPresets(entityId: string): TuneInPreset[] {
   const state = getTuneInBrowseState(entityId);
   if (!state) {

@@ -1,6 +1,6 @@
-# Onkyo AVR / Pioneer AVR / Integra AVR
+# Onkyo AVR / Pioneer AVR / Integra AVR (eISCP)
 
-Custom integration for Unfolded Circle remotes to control your Onkyo / Pioneer / Integra AVR.
+Custom integration for Unfolded Circle remotes to control your Onkyo / Pioneer / Integra AVR (eISCP).
 
 [![GitHub Release](https://img.shields.io/github/v/release/EddyMcNut/uc-intg-onkyo-avr)](https://github.com/EddyMcNut/uc-intg-onkyo-avr/releases)
 [![License](https://img.shields.io/badge/license-MPL--2.0-blue.svg)](https://github.com/EddyMcNut/uc-intg-onkyo-avr/blob/main/LICENSE)
@@ -13,7 +13,7 @@ You use this integration at your own risk!
 
 ## Prerequisites
 
-Read this readme completely, it contains some tips for known issues and it also explains how to use `Input source` in a flexibale way so you can send a lot of different commands to your AVR.
+_If your AVR has been disconnected from power, it could be that you first have to switch on your AVR manually one time before network commands work again (depends on the model), waking up after STANDBY should then work again._
 
 - Your AVR(s) needs a fixed IP address.
 - Your AVR(s) needs to be connected to the same network as you UC Remote (if AVR IP is 192.168.1.x then UC Remote IP must also start with 192.168.1).
@@ -25,8 +25,6 @@ Read this readme completely, it contains some tips for known issues and it also 
 - Your UC Remote needs to have `New reconnect logic` enabled.
 
   ![](./screenshots/new-reconnect-logic.png)
-
-_If your AVR has been disconnected from power, it could be that you first have to switch on your AVR manually one time before network commands work again (depends on the model), waking up after STANDBY should then work again._
 
 ## Reported to work on different brands and models
 

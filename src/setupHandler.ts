@@ -146,6 +146,7 @@ export default class SetupHandler {
       input.albumArtURL ||
       input.listeningModeOptions ||
       input.inputSelectorOptions ||
+      input.createDiracSelectEntity ||
       input.volumeScale ||
       input.volumeDisplay ||
       input.adjustVolumeDispl ||
@@ -170,8 +171,20 @@ export default class SetupHandler {
         port: currentAvr?.port,
         queueThreshold: currentAvr?.queueThreshold,
         albumArtURL: currentAvr?.albumArtURL,
-        listeningModeOptions: Array.isArray(currentAvr?.listeningModeOptions) ? currentAvr.listeningModeOptions.join("; ") : currentAvr?.listeningModeOptions === null ? "none" : "",
-        inputSelectorOptions: Array.isArray(currentAvr?.inputSelectorOptions) ? currentAvr.inputSelectorOptions.join("; ") : currentAvr?.inputSelectorOptions === null ? "none" : "",
+        listeningModeOptions: Array.isArray(currentAvr?.listeningModeOptions)
+          ? currentAvr.listeningModeOptions.join("; ")
+          : currentAvr?.listeningModeOptions === "all"
+            ? "all"
+            : currentAvr?.listeningModeOptions === null
+              ? "none"
+              : "",
+        inputSelectorOptions: Array.isArray(currentAvr?.inputSelectorOptions)
+          ? currentAvr.inputSelectorOptions.join("; ")
+          : currentAvr?.inputSelectorOptions === "all"
+            ? "all"
+            : currentAvr?.inputSelectorOptions === null
+              ? "none"
+              : "",
         volumeScale: currentAvr?.volumeScale,
         volumeDisplay: currentAvr?.volumeDisplay,
         adjustVolumeDispl: currentAvr?.adjustVolumeDispl,
@@ -179,6 +192,7 @@ export default class SetupHandler {
         zoneCount: currentAvr && cfg.avrs ? cfg.avrs.filter((a) => a.model === currentAvr.model && a.ip === currentAvr.ip).length : 1,
         createSensors: currentAvr?.createSensors,
         createRemoteEntity: currentAvr?.createRemoteEntity,
+        createDiracSelectEntity: currentAvr?.createDiracSelectEntity,
         netMenuDelay: currentAvr?.netMenuDelay,
         tuneinPresetPosition: currentAvr?.tuneinPresetPosition,
         tuneinMenuStyle: currentAvr?.tuneinMenuStyle,

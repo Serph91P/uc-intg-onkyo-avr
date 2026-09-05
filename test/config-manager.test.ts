@@ -268,7 +268,7 @@ describe("ConfigManager static methods", () => {
     it("rejects invalid input selector option", () => {
       const result = ConfigManager.validateAvrPayload({ model: "TX-RZ50", ip: "1.2.3.4", port: 60128, inputSelectorOptions: [""] });
       expect(result.errors.length).toBe(0);
-      expect(result.normalized.inputSelectorOptions).toEqual([]);
+      expect(result.normalized.inputSelectorOptions).toEqual("all");
     });
 
     it("handles listeningModeOptions with null sentinel", () => {

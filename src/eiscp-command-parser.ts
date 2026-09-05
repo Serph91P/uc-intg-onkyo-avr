@@ -1,5 +1,6 @@
 import { eiscpCommands } from "./eiscp-commands.js";
 import { eiscpMappings } from "./eiscp-mappings.js";
+import { diracResponseToCommandValue } from "./diracSelect.js";
 import { NO_TITLE } from "./constants.js";
 import { detectServiceFromText, detectServiceFromAsciiPrefix, getCanonicalServiceName } from "./serviceDetector.js";
 import type { DeezerBrowseState } from "./deezerBrowserStore.js";
@@ -75,6 +76,9 @@ export class IscpCommandParser {
       NST: (value, _cmd, result) => this.handleNST(value, result),
       FLD: (value, _cmd, result) => this.handleFLD(value, result),
       VOC: (value, _cmd, result) => this.handleVocal(value, result),
+      TFR: (value, _cmd, result) => this.handleToneFront(value, result),
+      CTL: (value, _cmd, result) => this.handleCenterLevel(value, result),
+      SWL: (value, _cmd, result) => this.handleSubwooferLevel(value, result),
       NLT: (value, _cmd, result) => this.handleNLT(value, result),
       NLS: (value, _cmd, result) => this.handleNLS(value, result),
       NLA: (value, _cmd, result) => this.handleNLA(value, result)
@@ -112,6 +116,11 @@ export class IscpCommandParser {
 
     // Delegate to special handler if one exists
     const upperCommand = command.toUpperCase();
+
+    // Normalize DSS query responses before the generic command-table lookup. The AVR
+    // reports Dirac state as "100"/"200"/"300"/"400" but the command values are C00-C03.
+    const lookupValue = upperCommand === "DSS" ? diracResponseToCommandValue(value) : value;
+
     const handler = this.commandHandlers[upperCommand];
     if (handler) {
       const handled = handler(value, command, result);
@@ -140,9 +149,9 @@ export class IscpCommandParser {
     result.command = cmdObj.name;
     const valuesObj = cmdObj.values;
 
-    if (valuesObj[value]?.name !== undefined) {
-      result.argument = valuesObj[value].name;
-    } else if (value === "N/A") {
+    if (valuesObj[lookupValue]?.name !== undefined) {
+      result.argument = valuesObj[lookupValue].name;
+    } else if (lookupValue === "N/A") {
       // Skip N/A values (zone is off or unavailable)
     } else if (
       VALUE_MAPPINGS.hasOwnProperty(lookupCommand as keyof typeof VALUE_MAPPINGS) &&
@@ -536,6 +545,61 @@ export class IscpCommandParser {
     const level = parseInt(value, 16);
     result.command = "vocal";
     result.argument = Number.isNaN(level) ? value : level;
+    return result;
+  }
+
+  // Decode an eISCP signed, hex-magnitude level code (e.g. "-A", "00", "+A", "+0E", "-01") into a signed dB value.
+  // Format is a sign char ('-', '0', '+') followed by one or more hex magnitude digits. `step` is the dB per hex unit:
+  // 1 for tone bass/treble, 0.5 for center/subwoofer temporary levels.
+  private decodeSignedLevel(code: string, step: number): number | null {
+    if (code.length < 2) return null;
+    const sign = code[0];
+    const hexPart = code.slice(1);
+    if (!/^[0-9A-Fa-f]+$/.test(hexPart)) return null;
+    const magnitude = parseInt(hexPart, 16) * step;
+    if (sign === "0") return 0;
+    if (sign === "-") return -magnitude;
+    if (sign === "+") return magnitude;
+    return null;
+  }
+
+  // Tone(Front) query/response carries both bass and treble: "B{xx}T{xx}".
+  private handleToneFront(value: string, result: CommandResult): CommandResult {
+    const match = value.match(/^B(.{2})T(.{2})$/);
+    if (!match) {
+      result.command = "undefined";
+      return result;
+    }
+    const bass = this.decodeSignedLevel(match[1], 1);
+    const treble = this.decodeSignedLevel(match[2], 1);
+    if (bass === null || treble === null) {
+      result.command = "undefined";
+      return result;
+    }
+    result.command = "tone-front";
+    result.argument = { bass: String(bass), treble: String(treble) };
+    return result;
+  }
+
+  private handleCenterLevel(value: string, result: CommandResult): CommandResult {
+    const level = this.decodeSignedLevel(value, 0.5);
+    if (level === null) {
+      result.command = "undefined";
+      return result;
+    }
+    result.command = "center-temporary-level";
+    result.argument = level;
+    return result;
+  }
+
+  private handleSubwooferLevel(value: string, result: CommandResult): CommandResult {
+    const level = this.decodeSignedLevel(value, 0.5);
+    if (level === null) {
+      result.command = "undefined";
+      return result;
+    }
+    result.command = "subwoofer-temporary-level";
+    result.argument = level;
     return result;
   }
 }

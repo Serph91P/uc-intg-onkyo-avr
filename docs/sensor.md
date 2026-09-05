@@ -1,16 +1,21 @@
 ## Sensors
 
-As from v0.7.3, this integration contains the following sensors:
+As from v0.9.3, this integration contains the following sensors:
 
-- Volume
-- Source
 - Audio Input
 - Audio Output
+- Base
+- Center
+- [Front Panel Display](#front-panel-display)
+- Mute
+- Output Display
+- Source
+- Subwoofer
+- Treble
 - Video Input
 - Video Output
-- Output Display
-- Mute
-- [Front Panel Display](#front-panel-display)
+- Vocal
+- Volume
 
 **Prerequisite: make sure you are using UC Firmware 2.7.1 or higher.**
 

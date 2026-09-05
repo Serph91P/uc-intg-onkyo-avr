@@ -67,13 +67,18 @@ it("queryAvrState sends all query commands in order", async () => {
 
   await avrStateQueryService.queryAvrState(eid, mock, "main", "test");
 
-  expect(commands.length).toBe(6);
+  expect(commands.length).toBe(11);
   expect(commands[0]).toEqual({ zone: "main", command: "system-power", args: "query" });
   expect(commands[1]).toEqual({ zone: "main", command: "input-selector", args: "query" });
   expect(commands[2]).toEqual({ zone: "main", command: "volume", args: "query" });
   expect(commands[3]).toEqual({ zone: "main", command: "audio-muting", args: "query" });
   expect(commands[4]).toEqual({ zone: "main", command: "listening-mode", args: "query" });
   expect(commands[5]).toEqual({ zone: "main", command: "fp-display", args: "query" });
+  expect(commands[6]).toEqual({ zone: "main", command: "tone-front", args: "query" });
+  expect(commands[7]).toEqual({ zone: "main", command: "vocal", args: "query" });
+  expect(commands[8]).toEqual({ zone: "main", command: "center-temporary-level", args: "query" });
+  expect(commands[9]).toEqual({ zone: "main", command: "subwoofer-temporary-level", args: "query" });
+  expect(commands[10]).toEqual({ zone: "main", command: "dirac", args: "query" });
 });
 
 it("queryAvrState skips redundant query", async () => {
