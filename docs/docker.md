@@ -20,11 +20,23 @@ Use only **one active copy of this driver**. Back up the existing integration be
 
 ## Quick start: Linux host networking
 
-Use a checkout/release containing these Docker files. Until this change is merged upstream, use the reviewed feature revision rather than expecting upstream `main` to contain them.
+After merge, use a normal upstream checkout or an upstream release containing these Docker files:
 
 ```sh
 git clone https://github.com/EddyMcNut/uc-intg-onkyo-avr.git
 cd uc-intg-onkyo-avr
+```
+
+**Optional PR preview (before merge):** upstream `main` does not yet contain the Docker files. After cloning, run these commands **before any Compose commands** to check out the current PR #43 revision. This is a development preview, not an upstream release; review the fetched revision before running it.
+
+```sh
+git fetch origin pull/43/head
+git switch --detach FETCH_HEAD
+```
+
+Then build and start locally (neither path requires a published registry image):
+
+```sh
 docker compose config --quiet
 docker compose build --pull
 docker compose up -d --no-build --pull never
@@ -42,7 +54,15 @@ docker compose pull onkyo
 docker compose up -d --no-build
 ```
 
-Persist that choice as `ONKYO_IMAGE=ghcr.io/eddymcnut/uc-intg-onkyo-avr:X.Y.Z` in a local `.env` file so later shells use the same image. If pull reports “manifest unknown” or an unavailable/private package, use the local build above (unset `ONKYO_IMAGE` first). Do not substitute a fork image and assume it has identical contents. Prefer a version or digest over mutable `latest`.
+Persist that choice as `ONKYO_IMAGE=ghcr.io/eddymcnut/uc-intg-onkyo-avr:X.Y.Z` in a local `.env` file so later shells use the same image. If pull reports “manifest unknown” or an unavailable/private package, explicitly select the local image and rebuild:
+
+```sh
+export ONKYO_IMAGE=uc-intg-onkyo-avr:local
+docker compose build --pull
+docker compose up -d --no-build --pull never
+```
+
+Also remove/comment the registry `ONKYO_IMAGE` entry in `.env`, or update it to `ONKYO_IMAGE=uc-intg-onkyo-avr:local`, for future shells. Merely unsetting the shell variable is insufficient: Compose reads `.env` again. Do not substitute a fork image and assume it has identical contents. Prefer a version or digest over mutable `latest`.
 
 ### Add it to Remote Two/3
 
@@ -205,7 +225,7 @@ docker build --progress=plain -t uc-intg-onkyo-avr:local .
 bash docker/smoke.sh uc-intg-onkyo-avr:local
 ```
 
-The smoke test creates uniquely named disposable containers and a named volume, uses **`--network none`** and `UC_DISABLE_MDNS_PUBLISH=true`, and does not publish ports or send AVR discovery/control commands. It checks the image's default command, actual `get_driver_metadata` WebSocket response, runtime assets, absence of TypeScript in production dependencies, non-root config writes, SIGTERM stop (no forced kill), and persistence after container recreation. It cleans up **only its own** test resources. Run it from the repository root; it does not use your configured Compose volume.
+The smoke test creates uniquely named disposable containers and a named volume, uses **`--network none`** and `UC_DISABLE_MDNS_PUBLISH=true`, and does not publish ports or send AVR discovery/control commands. It checks the image's default command, actual `get_driver_metadata` WebSocket response, runtime assets, absence of TypeScript in production dependencies, and SIGTERM stop (no forced kill). Through the real WebSocket reconfiguration/restore flow it saves the valid harmless configuration `{ "avrs": [], "logLevel": "error" }`, asserts the exact `/config/config.json` contents and UID 1000 ownership, and rejects an accidental `/app/config.json` fallback. After recreating with the default command and the same volume, it checks the persisted file and `ConfigManager.load()`, then verifies the running driver's configuration form reloads the non-default log level. It does not submit that manual form or configure any AVR. It cleans up **only its own** test resources. Run it from the repository root; it does not use your configured Compose volume.
 
 The Dockerfile uses lockfile-based `npm ci`, a separate production dependency stage, and only compiled code/runtime assets in the final image. It checks that `package.json` and `driver.json` versions match and fails on mismatch. Both are currently 0.9.3; future releases must update them together (and the lockfile's package version when changing package version). The default command is `node dist/driver.js`, **not** the obsolete `dist/src/index.js`.
 
@@ -216,11 +236,12 @@ The official Node base matches `.nvmrc` and is pinned to a multi-platform index 
 [`.github/workflows/docker.yml`](../.github/workflows/docker.yml):
 
 - PRs and `main` / `feat/**` pushes run dependency installation, tests, code checks, Compose validation, and **native amd64 and arm64 image builds plus isolated smoke tests**. These jobs have only `contents: read`; no registry login/write or registry secrets.
+- A read-only `release-gate` job checks out full history (`fetch-depth: 0`), verifies that `refs/remotes/origin/<default_branch>` exists, and uses `git merge-base --is-ancestor` to require the release commit to be reachable from that branch. The default-branch name comes through an environment variable, not shell interpolation. A missing ref or unmerged commit fails closed **before the publishing job with `packages: write` can start**. For the upstream repository this is the upstream default branch; forks check their own default branch.
 - Pushing an authorized release tag `vX.Y.Z` publishes `ghcr.io/<lowercase-owner>/<lowercase-repository>:X.Y.Z` and `:latest`, **after both builds pass**. A prerelease must use a suffix such as `vX.Y.Z-rc.1`; it publishes only `:X.Y.Z-rc.1`, never `latest`. Do not use a stable-looking tag for a prerelease. Tags must match `package.json` exactly after removing `v`; build metadata (`+...`) is rejected because it is not a valid image tag.
 - Manual dispatch defaults to **build/test only** (`publish: false`). Explicit `publish: true` can publish **only from the repository default branch**, under `:dev-<12-character-commit-SHA>`. It never creates/updates `latest` or a stable version tag.
 - Only the publishing job has `packages: write`. It uses the repository's **`GITHUB_TOKEN`**, not a PAT, and lowercases the repository name for GHCR. Buildx with QEMU builds the multi-platform publication; validation runs natively on GitHub's public Linux x64 and ARM64 runners.
 
-For upstream the resulting path is `ghcr.io/eddymcnut/uc-intg-onkyo-avr`. Maintainers must enable Actions/package publishing as permitted by their repository policy and make the GHCR package **public** if end users should pull anonymously (new packages may initially be private). Confirm package access and inspect the published manifest with `docker buildx imagetools inspect IMAGE:VERSION`; it must contain `linux/amd64` and `linux/arm64`. Protect release tags/default-branch publishing through repository permissions. Re-running a release build can replace its version tag; users needing immutable deployments should pin the manifest digest.
+For upstream the resulting path is `ghcr.io/eddymcnut/uc-intg-onkyo-avr`. Maintainers must enable Actions/package publishing as permitted by their repository policy and make the GHCR package **public** if end users should pull anonymously (new packages may initially be private). Confirm package access and inspect the published manifest with `docker buildx imagetools inspect IMAGE:VERSION`; it must contain `linux/amd64` and `linux/arm64`. Protect release tags and the default branch through repository rules as defense in depth: restrict tag creation/update/deletion to release maintainers and require reviewed changes to workflow/gate files. The ancestry gate is not a security boundary against someone who can write branches containing modified workflows or a repository administrator; those roles are inherently trusted and can change or bypass repository-owned CI. All Actions in this Docker workflow are pinned to verified full commit SHAs with version comments; update pins deliberately after reviewing the official Action release. Re-running a release build can replace its version tag; users needing immutable deployments should pin the manifest digest.
 
 Do not push a release tag merely to test Docker: the pre-existing archive workflow also reacts to release tags. Feature branches and PRs do not publish images. Forks derive their own GHCR path; this workflow does not mirror upstream images.
 

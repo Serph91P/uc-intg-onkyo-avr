@@ -35,4 +35,4 @@ test "$(docker inspect -f '{{.State.ExitCode}}' "$container")" != 137
 docker rm "$container" >/dev/null
 start
 docker exec -i -e SMOKE_RECREATED=true "$container" node --input-type=module < docker/smoke-probe.mjs
-printf 'PASS: default CMD, WebSocket metadata, assets, non-root, persistent volume, SIGTERM/recreate\n'
+printf 'PASS: default CMD, WebSocket metadata/restore, assets, UID1000 /config/config.json, SIGTERM/recreate and setup-form reload\n'
