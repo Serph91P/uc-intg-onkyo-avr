@@ -47,7 +47,9 @@ Users report it also to work with:
 
 ## Install
 
-[Installation](./docs/installation.md)
+[Installation on the Remote (custom archive)](./docs/installation.md)
+
+[Docker on a separate host: setup, networking, updates and image publishing](./docs/docker.md)
 
 [Upgrade to new version](./docs/new-version.md)
 

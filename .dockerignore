@@ -1,0 +1,16 @@
+# Allow only inputs needed by the multi-stage build.
+**
+!Dockerfile
+!.dockerignore
+!package.json
+!package-lock.json
+!tsconfig.json
+!src/
+!src/**
+!driver.json
+!eiscp.png
+!LICENSE
+!logos/
+!logos/**
+!docker/
+!docker/healthcheck.mjs

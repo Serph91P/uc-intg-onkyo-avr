@@ -1,5 +1,7 @@
 ## Installation and usage
 
+The instructions below install the custom `.tar.gz` archive **on the Remote**. To run the driver on a separate Linux/NAS/Raspberry Pi Docker host instead, follow the [Docker setup guide](docker.md), including external registration and network requirements. Do not upload a Docker image through “Install custom”, and keep only one active copy of the driver.
+
 ### Installation
 
 - Make sure your AVR is ON or STANDBY.
