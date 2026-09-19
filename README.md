@@ -28,22 +28,9 @@ _If your AVR has been disconnected from power, it could be that you first have t
 
 ## Reported to work on different brands and models
 
-I have tested it with my Onkyo TX-RZ50. I gave it a fixed IP address (a while ago to solve Spotify hickups) and it has a wired connection to my network.
+I have tested it with my Onkyo TX-RZ50. I gave it a fixed IP address via my router and it has a wired connection to my network.
 
-Users report it also to work with:
-
-- TX-RZ70
-- TX-RZ1100
-- TX RZ-730
-- TX-NR555
-- TX-NR656
-- TX-NR807
-- TX-NR6050
-- TX-NR6100
-- Pioneer VSX-932
-- Pioneer VSX-LX305
-- Pioneer VSA-LX805
-- Integra (model unknown)
+Users report it to work with several Onkyo, Pioneer and Integra models. 
 
 ## Install
 
@@ -70,9 +57,13 @@ Example activities:
 
 [Album art](./docs/album-art.md)
 
-## Input source and Cheats
+## Commands
+
+[Simple Commands](./docs/generated-simplecommands.md)
 
 [Input source](./docs/input-selector.md)
+
+[Listening modes](./docs/listening-modes.md)
 
 [Cheats](./docs/cheats.md)
 
@@ -89,10 +80,6 @@ Example activities:
 [Selects](./docs/select.md)
 
 [Remote](./docs/remote.md)
-
-## Listening modes
-
-[Listening modes](./docs/listening-modes.md)
 
 ## Multiple AVRs and Zones
 
