@@ -139,6 +139,34 @@ describe("renderZoneMedia", () => {
         [uc.MediaPlayerAttributes.MediaPosition]: 0
       })
     );
+
+    const call = mocks.driverMock.updateEntityAttributes.mock.calls.find((c: any[]) => c[0] === "M 1.2.3.4 main");
+    expect(call[1][uc.MediaPlayerAttributes.MediaImageUrl]).toContain("data:image/svg+xml");
+  });
+
+  it("creates DAB artwork for dab source", async () => {
+    const mocks = await createRenderer({
+      avrStateApiMock: makeAvrStateApiMock({ getSource: vi.fn().mockReturnValue("dab") }),
+      mediaStateStoreMock: makeMediaStateStoreMock({
+        getNowPlaying: vi.fn().mockReturnValue({ station: "Radio 4", artist: "DAB Radio", title: "" }),
+        getSharedAvrMediaState: vi.fn().mockReturnValue({ currentImageUrl: "", lastImageHash: "" })
+      })
+    });
+
+    await mocks.renderer.renderZoneMedia("M 1.2.3.4 main", false);
+
+    expect(mocks.driverMock.updateEntityAttributes).toHaveBeenCalledWith(
+      "M 1.2.3.4 main",
+      expect.objectContaining({
+        [uc.MediaPlayerAttributes.MediaTitle]: "Radio 4",
+        [uc.MediaPlayerAttributes.MediaArtist]: "DAB Radio"
+      })
+    );
+
+    const call = mocks.driverMock.updateEntityAttributes.mock.calls.find((c: any[]) => c[0] === "M 1.2.3.4 main");
+    const imageUrl: string = call[1][uc.MediaPlayerAttributes.MediaImageUrl];
+    expect(imageUrl).toContain("data:image/svg+xml");
+    expect(imageUrl).toContain("DAB");
   });
 
   it("handles default (unknown) source by clearing media attributes", async () => {

@@ -4,6 +4,7 @@ import { OnkyoConfig } from "./configManager.js";
 import type { AvrStateApi } from "./types.js";
 import log from "./loggers.js";
 import { delay } from "./utils.js";
+import { createTunerArtwork } from "./serviceThumbnails.js";
 import { ZoneAgnosticMediaStateStore } from "./zoneAgnosticMediaState.js";
 
 const integrationName = "zoneMediaRenderer:";
@@ -88,11 +89,13 @@ export class ZoneMediaRenderer {
       case "tuner":
       case "fm":
       case "dab": {
+        const label = entitySource === "dab" ? "DAB" : entitySource === "tuner" ? "TUNER" : "FM";
+        const station = zoneNowPlaying.station || "unknown";
         this.driver.updateEntityAttributes(entityId, {
           [uc.MediaPlayerAttributes.MediaArtist]: zoneNowPlaying.artist || "unknown",
-          [uc.MediaPlayerAttributes.MediaTitle]: zoneNowPlaying.station || "unknown",
+          [uc.MediaPlayerAttributes.MediaTitle]: station,
           [uc.MediaPlayerAttributes.MediaAlbum]: "",
-          [uc.MediaPlayerAttributes.MediaImageUrl]: "",
+          [uc.MediaPlayerAttributes.MediaImageUrl]: createTunerArtwork({ sourceLabel: label, stationName: station }),
           [uc.MediaPlayerAttributes.MediaPosition]: 0,
           [uc.MediaPlayerAttributes.MediaDuration]: 0
         });
