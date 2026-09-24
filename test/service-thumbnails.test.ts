@@ -189,4 +189,36 @@ describe("serviceThumbnails", () => {
     const result = thumbnails.createBackdrop();
     expect(result).toBeTruthy();
   });
+
+  describe("createTunerArtwork", () => {
+    let createTunerArtwork: any;
+
+    beforeAll(async () => {
+      const mod = await import("../src/serviceThumbnails.js");
+      createTunerArtwork = mod.createTunerArtwork;
+    });
+
+    it("returns a data URI with the UC radio icon in eiscp blue on a transparent background", () => {
+      const result = createTunerArtwork();
+      expect(result).toContain("data:image/svg+xml");
+      expect(result).toContain("%231a6fd1");
+      expect(result).toContain("M495 401Q515");
+      expect(result).not.toContain("<rect");
+    });
+
+    it("uses the given icon color", () => {
+      const result = createTunerArtwork({ textColor: "#ff0000" });
+      expect(result).toContain("%23ff0000");
+    });
+
+    it("falls back when over max length", () => {
+      const result = createTunerArtwork({ maxLength: 1, fallbackIcon: "fallback" });
+      expect(result).toBe("fallback");
+    });
+
+    it("stays within the default max thumbnail length", () => {
+      const result = createTunerArtwork();
+      expect(result.length).toBeLessThan(4000);
+    });
+  });
 });
