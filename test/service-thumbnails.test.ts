@@ -198,34 +198,27 @@ describe("serviceThumbnails", () => {
       createTunerArtwork = mod.createTunerArtwork;
     });
 
-    it("returns a data URI with source label, station name and default color", () => {
-      const result = createTunerArtwork({ sourceLabel: "FM", stationName: "NPO Radio 2" });
+    it("returns a data URI with the UC radio icon in eiscp blue on a transparent background", () => {
+      const result = createTunerArtwork();
       expect(result).toContain("data:image/svg+xml");
-      expect(result).toContain("NPO Radio 2");
-      expect(result).toContain("FM");
       expect(result).toContain("%231a6fd1");
+      expect(result).toContain("M495 401Q515");
       expect(result).not.toContain("<rect");
     });
 
-    it("uses the given text color", () => {
-      const result = createTunerArtwork({ sourceLabel: "DAB", stationName: "Station", textColor: "#ff0000" });
+    it("uses the given icon color", () => {
+      const result = createTunerArtwork({ textColor: "#ff0000" });
       expect(result).toContain("%23ff0000");
     });
 
-    it("wraps long station names", () => {
-      const result = createTunerArtwork({ sourceLabel: "FM", stationName: "This is a very long station name that surely wraps" });
-      expect(result).toContain("data:image/svg+xml");
-      expect(result.length).toBeLessThan(4000);
-    });
-
     it("falls back when over max length", () => {
-      const result = createTunerArtwork({ sourceLabel: "FM", stationName: "Station", maxLength: 1, fallbackIcon: "fallback" });
+      const result = createTunerArtwork({ maxLength: 1, fallbackIcon: "fallback" });
       expect(result).toBe("fallback");
     });
 
-    it('uses "unknown" for empty station name', () => {
-      const result = createTunerArtwork({ sourceLabel: "DAB", stationName: "" });
-      expect(result).toContain("unknown");
+    it("stays within the default max thumbnail length", () => {
+      const result = createTunerArtwork();
+      expect(result.length).toBeLessThan(4000);
     });
   });
 });

@@ -367,6 +367,25 @@ describe("ConfigManager static methods", () => {
       expect(result.avrs[0].model).toBe("TX-RZ50");
     });
 
+    it("removes legacy learning/learningEnabled keys and persists cleaned config", () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(
+        JSON.stringify({
+          avrs: [{ model: "TX-RZ50", ip: "1.2.3.4", port: 60128 }],
+          learning: { "TX-RZ50 1.2.3.4": { LMD: { LMD00: { names: ["all-stereo"], updated: false } } } },
+          learningEnabled: true
+        })
+      );
+      ConfigManager.load();
+      expect(ConfigManager.config.learning).toBeUndefined();
+      expect(ConfigManager.config.learningEnabled).toBeUndefined();
+      expect(mockWriteFileSync).toHaveBeenCalled();
+      const writtenPayloads = mockWriteFileSync.mock.calls.map((c) => c[1] ?? c[0]);
+      const written = JSON.parse(writtenPayloads.find((arg) => typeof arg === "string" && arg.trimStart().startsWith("{")) as string);
+      expect(written.learning).toBeUndefined();
+      expect(written.learningEnabled).toBeUndefined();
+    });
+
     it("loads config with global settings and migrates to per-AVR", () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(

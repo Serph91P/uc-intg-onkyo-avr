@@ -88,14 +88,13 @@ export class ZoneMediaRenderer {
       }
       case "tuner":
       case "fm":
+      case "am":
       case "dab": {
-        const label = entitySource === "dab" ? "DAB" : entitySource === "tuner" ? "TUNER" : "FM";
-        const station = zoneNowPlaying.station || "unknown";
         this.driver.updateEntityAttributes(entityId, {
-          [uc.MediaPlayerAttributes.MediaArtist]: zoneNowPlaying.artist || "unknown",
-          [uc.MediaPlayerAttributes.MediaTitle]: station,
+          [uc.MediaPlayerAttributes.MediaArtist]: zoneNowPlaying.artist || "Tuner",
+          [uc.MediaPlayerAttributes.MediaTitle]: zoneNowPlaying.station || "Tuner",
           [uc.MediaPlayerAttributes.MediaAlbum]: "",
-          [uc.MediaPlayerAttributes.MediaImageUrl]: createTunerArtwork({ sourceLabel: label, stationName: station }),
+          [uc.MediaPlayerAttributes.MediaImageUrl]: createTunerArtwork(),
           [uc.MediaPlayerAttributes.MediaPosition]: 0,
           [uc.MediaPlayerAttributes.MediaDuration]: 0
         });

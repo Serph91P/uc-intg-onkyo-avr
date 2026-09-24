@@ -107,38 +107,23 @@ function svgToDataUri(svg: string): string {
 }
 
 export type TunerArtworkOptions = {
-  sourceLabel: string;
-  stationName: string;
   textColor?: string;
   maxLength?: number;
   fallbackIcon?: string;
 };
 
-const TUNER_TEXT_COLOR = "#1a6fd1";
+const TUNER_ICON_COLOR = "#1a6fd1";
+const TUNER_ICON_PATH =
+  "M495 401Q515 409 511 431Q503 451 481 447L52 321Q38 317 27 308Q1 289 0 256V252V144V0Q1 -27 19 -45Q37 -63 64 -64H448Q475 -63 493 -45Q511 -27 512 0V256Q511 283 493 301Q475 319 448 320H219L495 401ZM368 208Q413 207 437 168Q459 128 437 88Q413 49 368 48Q323 49 299 88Q277 128 299 168Q323 207 368 208ZM80 192Q81 207 96 208H192Q207 207 208 192Q207 177 192 176H96Q81 177 80 192ZM64 128Q65 143 80 144H208Q223 143 224 128Q223 113 208 112H80Q65 113 64 128ZM80 64Q81 79 96 80H192Q207 79 208 64Q207 49 192 48H96Q81 49 80 64Z";
 
-export function createTunerArtwork(options: TunerArtworkOptions): string {
-  const textColor = options.textColor ?? TUNER_TEXT_COLOR;
+export function createTunerArtwork(options: TunerArtworkOptions = {}): string {
+  const textColor = options.textColor ?? TUNER_ICON_COLOR;
   const maxLength = options.maxLength ?? 4000;
   const fallbackIcon = options.fallbackIcon ?? "";
 
-  const stationLines = wrapTitle(options.stationName || "unknown", 26, 3);
-  const stationFontSize = stationLines.length >= 3 ? 32 : stationLines.length === 2 ? 40 : 48;
-  const stationLineHeight = stationFontSize + 10;
-
-  const labelFontSize = 60;
-  const labelCapHeight = labelFontSize * 0.7;
-  const stationBlockHeight = stationLineHeight * stationLines.length;
-  const totalHeight = labelCapHeight + 30 + stationBlockHeight;
-  const groupTop = (360 - totalHeight) / 2;
-
-  const labelBaseline = groupTop + labelCapHeight;
-  const stationBlockTop = labelBaseline + 30;
-  const stationText = stationLines.map((line, index) => `<text x="320" y="${stationBlockTop + stationFontSize + index * stationLineHeight}">${escapeXml(line)}</text>`).join("");
-
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">` +
-    `<text x="320" y="${labelBaseline}" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="${labelFontSize}" font-weight="700" fill="${textColor}">${escapeXml(options.sourceLabel)}</text>` +
-    `<g fill="${textColor}" font-family="Arial,Helvetica,sans-serif" font-size="${stationFontSize}" font-weight="700" text-anchor="middle">${stationText}</g>` +
+    `<g transform="translate(169 30) scale(0.59) translate(0 64) scale(1 -1) translate(0 -383.67)"><path fill="${textColor}" d="${TUNER_ICON_PATH}"/></g>` +
     `</svg>`;
 
   const uri = svgToDataUri(svg);
