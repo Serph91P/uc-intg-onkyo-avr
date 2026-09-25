@@ -4,6 +4,7 @@ import { OnkyoConfig } from "./configManager.js";
 import type { AvrStateApi } from "./types.js";
 import log from "./loggers.js";
 import { delay } from "./utils.js";
+import { createTunerArtwork } from "./serviceThumbnails.js";
 import { ZoneAgnosticMediaStateStore } from "./zoneAgnosticMediaState.js";
 
 const integrationName = "zoneMediaRenderer:";
@@ -87,12 +88,13 @@ export class ZoneMediaRenderer {
       }
       case "tuner":
       case "fm":
+      case "am":
       case "dab": {
         this.driver.updateEntityAttributes(entityId, {
-          [uc.MediaPlayerAttributes.MediaArtist]: zoneNowPlaying.artist || "unknown",
-          [uc.MediaPlayerAttributes.MediaTitle]: zoneNowPlaying.station || "unknown",
+          [uc.MediaPlayerAttributes.MediaArtist]: zoneNowPlaying.artist || "Tuner",
+          [uc.MediaPlayerAttributes.MediaTitle]: zoneNowPlaying.station || "Tuner",
           [uc.MediaPlayerAttributes.MediaAlbum]: "",
-          [uc.MediaPlayerAttributes.MediaImageUrl]: "",
+          [uc.MediaPlayerAttributes.MediaImageUrl]: createTunerArtwork(),
           [uc.MediaPlayerAttributes.MediaPosition]: 0,
           [uc.MediaPlayerAttributes.MediaDuration]: 0
         });
@@ -112,11 +114,42 @@ export class ZoneMediaRenderer {
   }
 
   private async getImageHash(url: string): Promise<string> {
+    // Fast path: cheap conditional check via HTTP headers so an unchanged image is never
+    // fully re-downloaded. Most AVR web servers expose an ETag or Last-Modified header.
+    try {
+      const headResponse = await fetch(url, { method: "HEAD" });
+      const etag = headResponse.headers.get("etag");
+      const lastModified = headResponse.headers.get("last-modified");
+      const token = etag ?? lastModified;
+      if (token) {
+        return token;
+      }
+    } catch {
+      // AVR may not support HEAD — fall through to a streaming body hash.
+    }
+
     try {
       const response = await fetch(url);
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      return crypto.createHash("md5").update(buffer).digest("hex");
+      if (!response.ok) {
+        return "";
+      }
+      const body = response.body;
+      if (!body) {
+        return "";
+      }
+      // Stream the body into the hash instead of buffering the whole image in memory.
+      const hash = crypto.createHash("md5");
+      const reader = body.getReader();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+        if (value) {
+          hash.update(value);
+        }
+      }
+      return hash.digest("hex");
     } catch (err) {
       log.warn("%s failed to fetch/hash image: %s", integrationName, err);
       return "";

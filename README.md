@@ -30,7 +30,7 @@ _If your AVR has been disconnected from power, it could be that you first have t
 
 I have tested it with my Onkyo TX-RZ50. I gave it a fixed IP address via my router and it has a wired connection to my network.
 
-Users report it to work with several Onkyo, Pioneer and Integra models. 
+Users report it to work with several Onkyo, Pioneer and Integra models.
 
 ## Install
 

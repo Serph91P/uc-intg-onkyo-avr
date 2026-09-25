@@ -120,9 +120,9 @@ describe("renderZoneMedia", () => {
     );
   });
 
-  it("handles tuner/fm/dab source", async () => {
+  it.each(["tuner", "fm", "am", "dab"])("handles %s source", async (source) => {
     const mocks = await createRenderer({
-      avrStateApiMock: makeAvrStateApiMock({ getSource: vi.fn().mockReturnValue("fm") }),
+      avrStateApiMock: makeAvrStateApiMock({ getSource: vi.fn().mockReturnValue(source) }),
       mediaStateStoreMock: makeMediaStateStoreMock({
         getNowPlaying: vi.fn().mockReturnValue({ station: "89.7 FM", artist: "FM Radio", title: "" }),
         getSharedAvrMediaState: vi.fn().mockReturnValue({ currentImageUrl: "", lastImageHash: "" })
@@ -139,6 +139,52 @@ describe("renderZoneMedia", () => {
         [uc.MediaPlayerAttributes.MediaPosition]: 0
       })
     );
+
+    const call = mocks.driverMock.updateEntityAttributes.mock.calls.find((c: any[]) => c[0] === "M 1.2.3.4 main");
+    expect(call[1][uc.MediaPlayerAttributes.MediaImageUrl]).toContain("data:image/svg+xml");
+    expect(call[1][uc.MediaPlayerAttributes.MediaImageUrl]).toContain("%231a6fd1");
+  });
+
+  it("creates radio icon artwork for dab source", async () => {
+    const mocks = await createRenderer({
+      avrStateApiMock: makeAvrStateApiMock({ getSource: vi.fn().mockReturnValue("dab") }),
+      mediaStateStoreMock: makeMediaStateStoreMock({
+        getNowPlaying: vi.fn().mockReturnValue({ station: "Radio 4", artist: "DAB Radio", title: "" }),
+        getSharedAvrMediaState: vi.fn().mockReturnValue({ currentImageUrl: "", lastImageHash: "" })
+      })
+    });
+
+    await mocks.renderer.renderZoneMedia("M 1.2.3.4 main", false);
+
+    expect(mocks.driverMock.updateEntityAttributes).toHaveBeenCalledWith(
+      "M 1.2.3.4 main",
+      expect.objectContaining({
+        [uc.MediaPlayerAttributes.MediaTitle]: "Radio 4",
+        [uc.MediaPlayerAttributes.MediaArtist]: "DAB Radio"
+      })
+    );
+
+    const call = mocks.driverMock.updateEntityAttributes.mock.calls.find((c: any[]) => c[0] === "M 1.2.3.4 main");
+    const imageUrl: string = call[1][uc.MediaPlayerAttributes.MediaImageUrl];
+    expect(imageUrl).toContain("data:image/svg+xml");
+    expect(imageUrl).toContain("M495 401Q515");
+    expect(imageUrl).not.toContain("Radio 4");
+  });
+
+  it("creates radio icon artwork regardless of station name", async () => {
+    const mocks = await createRenderer({
+      avrStateApiMock: makeAvrStateApiMock({ getSource: vi.fn().mockReturnValue("fm") }),
+      mediaStateStoreMock: makeMediaStateStoreMock({
+        getNowPlaying: vi.fn().mockReturnValue({ station: "", artist: "FM Radio", title: "" }),
+        getSharedAvrMediaState: vi.fn().mockReturnValue({ currentImageUrl: "", lastImageHash: "" })
+      })
+    });
+
+    await mocks.renderer.renderZoneMedia("M 1.2.3.4 main", false);
+
+    const call = mocks.driverMock.updateEntityAttributes.mock.calls.find((c: any[]) => c[0] === "M 1.2.3.4 main");
+    expect(call[1][uc.MediaPlayerAttributes.MediaImageUrl]).toContain("data:image/svg+xml");
+    expect(call[1][uc.MediaPlayerAttributes.MediaTitle]).toBe("Tuner");
   });
 
   it("handles default (unknown) source by clearing media attributes", async () => {

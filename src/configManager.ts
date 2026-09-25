@@ -64,6 +64,17 @@ export class ConfigManager {
         const raw = fs.readFileSync(CONFIG_PATH, "utf-8");
         this.config = JSON.parse(raw);
 
+        // Remove legacy learning-store keys from the abandoned feature/learn experiment.
+        // Not used at runtime; drop them from memory and persist the cleaned config so
+        // startup logs and subsequent backup/restore payloads stay clean.
+        const rawConfig = this.config as Record<string, unknown>;
+        if ("learning" in rawConfig || "learningEnabled" in rawConfig) {
+          delete rawConfig.learning;
+          delete rawConfig.learningEnabled;
+          this.save(this.config);
+          log.info("%s Removed legacy learning/learningEnabled keys from config", integrationName);
+        }
+
         // Migrate legacy config to new format
         if (this.config.model && this.config.ip && this.config.port && !this.config.avrs) {
           this.config.avrs = [
