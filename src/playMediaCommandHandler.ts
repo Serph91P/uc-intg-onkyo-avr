@@ -22,10 +22,10 @@ import {
   TUNEIN_MENU_BACK_ID,
   TUNEIN_MENU_ROOT_TYPE
 } from "./mediaBrowser.js";
-import { consumeTraceNextTidalSelectionAfterMainMenu, getTidalBrowseState, listTidalMenuOptions } from "./tidalBrowserStore.js";
-import { consumeTraceNextDeezerSelectionAfterMainMenu, getDeezerBrowseState, listDeezerMenuOptions } from "./deezerBrowserStore.js";
-import { consumeTraceNextMusicServerSelectionAfterMainMenu, getMusicServerBrowseState, listMusicServerMenuOptions } from "./musicServerBrowserStore.js";
-import { consumeTuneInListModeActive, getTuneInMenuBrowseState, setTuneInMenuBrowseFrozen, setTuneInMenuNowPlayingStation } from "./tuneInMenuStore.js";
+import { consumeTidalListModeActive, consumeTraceNextTidalSelectionAfterMainMenu, getTidalBrowseState, listTidalMenuOptions } from "./tidalBrowserStore.js";
+import { consumeDeezerListModeActive, consumeTraceNextDeezerSelectionAfterMainMenu, getDeezerBrowseState, listDeezerMenuOptions } from "./deezerBrowserStore.js";
+import { consumeMusicServerListModeActive, consumeTraceNextMusicServerSelectionAfterMainMenu, getMusicServerBrowseState, listMusicServerMenuOptions } from "./musicServerBrowserStore.js";
+import { consumeTuneInListModeActive, getTuneInMenuBrowseState, resetTuneInMenuBrowseState, setTuneInMenuBrowseFrozen, setTuneInMenuNowPlayingStation } from "./tuneInMenuStore.js";
 import { getTuneInBrowseState } from "./tuneInBrowserStore.js";
 import { AVR_DEFAULTS, ConfigManager, DEFAULT_QUEUE_THRESHOLD, buildEntityId } from "./configManager.js";
 import {
@@ -37,6 +37,7 @@ import {
   TUNEIN_SERVICE_ID,
   type BrowseServiceId
 } from "./browseServiceContract.js";
+import type { NetworkNavigationMode } from "./configConstants.js";
 
 const logSource = "playMediaCommandHandler:";
 
@@ -82,6 +83,7 @@ export type PlayMediaCommandContext = {
   mediaId?: string;
   mediaType?: string;
   netMenuDelay?: number;
+  networkNavigationMode?: NetworkNavigationMode;
   setZonePrefix: ZonePrefixFn;
 };
 
@@ -158,13 +160,14 @@ export class PlayMediaCommandHandler {
               : undefined;
     if (pendingSubSource) this.avrStateApi.setSubSource(entityId, pendingSubSource);
 
-    if (serviceId === TUNEIN_SERVICE_ID) {
+    const modern = (this.eiscp.eiscpConfig?.networkNavigationMode ?? "modern") !== "legacy";
+    if (modern && serviceId === TUNEIN_SERVICE_ID) {
       await this.eiscp.raw("NSV0E0");
-    } else if (serviceId === MUSIC_SERVER_SERVICE_ID) {
+    } else if (modern && serviceId === MUSIC_SERVER_SERVICE_ID) {
       await this.eiscp.raw("NSV000");
-    } else if (serviceId === TIDAL_SERVICE_ID) {
+    } else if (modern && serviceId === TIDAL_SERVICE_ID) {
       await this.eiscp.raw("NSV1B0");
-    } else if (serviceId === DEEZER_SERVICE_ID) {
+    } else if (modern && serviceId === DEEZER_SERVICE_ID) {
       await this.eiscp.raw("NSV120");
     } else {
       await this.eiscp.command(setZonePrefix(getBrowseServiceSelectSourceCommand(serviceId)));
@@ -177,6 +180,7 @@ export class PlayMediaCommandHandler {
   async handle(context: PlayMediaCommandContext): Promise<uc.StatusCodes> {
     const { entityId, mediaId, mediaType, setZonePrefix } = context;
     const netMenuDelay = context.netMenuDelay ?? DEFAULT_QUEUE_THRESHOLD;
+    const modern = context.networkNavigationMode !== "legacy";
 
     const preset = resolveTuneInPreset(mediaId, mediaType);
     const tuneInMenuOption = resolveTuneInMenuOption(entityId, mediaId, mediaType);
@@ -229,9 +233,16 @@ export class PlayMediaCommandHandler {
 
     if (tuneInRootRequest) {
       await this.selectBrowseService(entityId, TUNEIN_SERVICE_ID, setZonePrefix, netMenuDelay, { force: true, delayAfterSelect: true });
-      await this.eiscp.raw("NTCTOP");
-      await delay(netMenuDelay);
-      await this.eiscp.raw("NTCSELECT");
+      // The legacy NSS workflow already enters TuneIn's root (v0.8.10).
+      // Only the modern direct-service path needs these additional steps.
+      if (modern) {
+        await this.eiscp.raw("NTCTOP");
+        await delay(netMenuDelay);
+        // NTCTOP reports the NET list. Wait for fresh TuneIn metadata after
+        // SELECT instead of harvesting with that intermediate count/layer.
+        resetTuneInMenuBrowseState(entityId);
+        await this.eiscp.raw("NTCSELECT");
+      }
       return uc.StatusCodes.Ok;
     }
 
@@ -250,10 +261,20 @@ export class PlayMediaCommandHandler {
           }
         }
       } else {
+        if (!modern) {
+          // Resolve the selected row before clearing the old list: arbitrary
+          // folders such as country names cannot be classified by name alone.
+          resetTuneInMenuBrowseState(entityId);
+          const state = getTuneInMenuBrowseState(entityId);
+          if (state) state.showMainMenuShortcut = true;
+        }
         setTuneInMenuBrowseFrozen(entityId, false);
       }
 
-      if (tuneInMenuOption.title.trim().toLowerCase() === "my presets") {
+      if (!modern) {
+        log.info("%s [%s] legacy TuneIn selection '%s': NLSI%s", logSource, entityId, tuneInMenuOption.title, String(tuneInMenuOption.menuIndex).padStart(5, "0"));
+        await this.eiscp.raw(`NLSI${String(tuneInMenuOption.menuIndex).padStart(5, "0")}`);
+      } else if (tuneInMenuOption.title.trim().toLowerCase() === "my presets") {
         await this.eiscp.raw(`NLSI${String(getTuneInPresetPosition(entityId)).padStart(5, "0")}`);
       } else if (getTuneInBrowseState(entityId)?.contextTitle === "my presets") {
         // TuneIn's My Presets NLSI positions are one-based, even though the
@@ -315,6 +336,20 @@ export class PlayMediaCommandHandler {
     const currentSubSource = this.avrStateApi.getSubSource(entityId);
     if (!isBrowseServiceActive(currentSource, currentSubSource, activeServiceId)) {
       await this.selectBrowseService(entityId, activeServiceId, setZonePrefix, netMenuDelay, { delayAfterSelect: true });
+    } else if (!modern && !selectedIsBrowsable) {
+      const alreadyInListMode =
+        activeServiceId === TIDAL_SERVICE_ID
+          ? consumeTidalListModeActive(entityId)
+          : activeServiceId === DEEZER_SERVICE_ID
+            ? consumeDeezerListModeActive(entityId)
+            : consumeMusicServerListModeActive(entityId);
+      if (!alreadyInListMode) {
+        const playbackStatus = this.avrStateApi.getPlaybackStatus(entityId);
+        if (["playing", "paused", "ff", "fr"].includes(playbackStatus)) {
+          await this.eiscp.command(setZonePrefix("network-usb list"));
+          await delay(netMenuDelay);
+        }
+      }
     }
 
     let menuIndexToSelect = activeOption.menuIndex;
@@ -355,15 +390,15 @@ export class PlayMediaCommandHandler {
         }
       }
     }
-    if (activeServiceId === MUSIC_SERVER_SERVICE_ID) {
+    if (modern && activeServiceId === MUSIC_SERVER_SERVICE_ID) {
       const musicServerState = getMusicServerBrowseState(entityId);
       log.info("%s [%s] selecting %s menu index=%d layer=%s title='%s'", logSource, entityId, activeLabel, menuIndexToSelect, musicServerState?.nlsLayerNumber ?? 0, selectedTitle);
       await this.eiscp.raw(musicServerSelectCommand(menuIndexToSelect, musicServerState?.nlsLayerNumber));
-    } else if (activeServiceId === TIDAL_SERVICE_ID) {
+    } else if (modern && activeServiceId === TIDAL_SERVICE_ID) {
       const tidalState = getTidalBrowseState(entityId);
       log.info("%s [%s] selecting %s menu index=%d layer=%s title='%s'", logSource, entityId, activeLabel, menuIndexToSelect, tidalState?.nlsLayerNumber ?? 0, selectedTitle);
       await this.eiscp.raw(xmlBrowseSelectCommand(menuIndexToSelect, tidalState?.nlsLayerNumber));
-    } else if (activeServiceId === DEEZER_SERVICE_ID) {
+    } else if (modern && activeServiceId === DEEZER_SERVICE_ID) {
       const deezerState = getDeezerBrowseState(entityId);
       log.info("%s [%s] selecting %s menu index=%d layer=%s title='%s'", logSource, entityId, activeLabel, menuIndexToSelect, deezerState?.nlsLayerNumber ?? 0, selectedTitle);
       await this.eiscp.raw(xmlBrowseSelectCommand(menuIndexToSelect, deezerState?.nlsLayerNumber));
